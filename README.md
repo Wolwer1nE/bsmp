@@ -10,7 +10,7 @@
 # Installation Instructions
 1. Clone the repository:
    ```bash
-   git clone 
+   git clone https://github.com/Wolwer1nE/bsmp.git
    ```
 2. We have `bin/*` scripts for building and running examples.
    To build the project, run:
