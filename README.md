@@ -21,7 +21,7 @@
 
     After generating the matrix, you can run the multiplication example:
     ```bash
-    bin/r mult data/100.txt --mults 10 --verbose
+    bin/r mult data/100.txt --rhs data/rhs_100.txt --mults 10 --verbose
     ```
 
     This will build and run the multiplication example 10 times, printing verbose output.
@@ -35,7 +35,8 @@ Loads a sparse matrix from a file in triplet format or Matrix Market format into
 ### src/block_sparse_matrix
 Implements Block Sparse Matrix structure and operations such as matrix-vector multiplication.
 To test multiplication, run:
-```bashbin/r mult data/100.txt --rhs data/rhs_100.txt --mults 10 --verbose
+```bash
+bin/r mult data/100.txt --rhs data/rhs_100.txt --mults 10 --verbose
 ```
 Data should be generated using the generator script in `generators/matrix.rb`.
 
