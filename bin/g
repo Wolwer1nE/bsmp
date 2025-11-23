@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="${SCRIPT_DIR%/bin}"
+GEN_DIR="${ROOT_DIR}/generators"
+
+usage() {
+  cat <<EOF
+Usage: bin/g <command> [args]
+Commands:
+  matrix <output_file> [n_blocks=1000] [block_size=4] [--random]
+    Generate block-diagonal sparse matrix and RHS using generators/matrix.rb.
+
+Examples:
+  bin/g matrix data/matrix_A_1000.txt 1000 4
+  bin/g matrix data/matrix_A_rand.txt 500 8 --random
+
+Environment:
+  Requires Ruby installed (ruby in PATH).
+EOF
+}
+
+ensure_ruby() {
+  if ! command -v ruby >/dev/null 2>&1; then
+    echo "Error: ruby not found in PATH" >&2
+    exit 127
+  fi
+}
+
+cmd_matrix() {
+  ensure_ruby
+  if [[ $# -lt 1 ]]; then
+    echo "Error: missing <output_file>" >&2
+    usage
+    exit 1
+  fi
+  ruby "${GEN_DIR}/matrix.rb" "$@"
+}
+
+main() {
+  if [[ $# -lt 1 ]]; then
+    usage
+    exit 1
+  fi
+  local cmd="$1"; shift || true
+  case "$cmd" in
+    matrix) cmd_matrix "$@" ;;
+    -h|--help|help) usage ;;
+    *) echo "Unknown command: $cmd" >&2; usage; exit 1 ;;
+  esac
+}
+
+main "$@"

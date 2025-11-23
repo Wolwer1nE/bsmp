@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Configure (CMake)",
+      "type": "shell",
+      "command": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release",
+      "problemMatcher": "$gcc",
+      "group": "build"
+    },
+    {
+      "label": "Build (CMake)",
+      "type": "shell",
+      "command": "cmake --build build -j",
+      "dependsOn": ["Configure (CMake)"],
+      "problemMatcher": "$gcc",
+      "group": "build"
+    },
+    {
+      "label": "Run example",
+      "type": "shell",
+      "command": "./build/example",
+      "dependsOn": ["Build (CMake)"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Run BiCGStab example",
+      "type": "shell",
+      "command": "./build/example_bicgstab data/bicgstab_matrix.txt data/bicgstab_rhs.txt",
+      "dependsOn": ["Build (CMake)"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Test BiCGStab (full pipeline)",
+      "type": "shell",
+      "command": "./test_bicgstab.sh",
+      "problemMatcher": []
+    }
+  ]
+}

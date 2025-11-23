@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="${SCRIPT_DIR}/.."
+BUILD_DIR="${ROOT_DIR}/build"
+
+print_usage() {
+  cat <<'EOF'
+Usage: bin/r <command> [options]
+
+Commands:
+  mult <matrix_file> [options]
+      Clean builds the project and runs the CUDA multiply test.
+      Options:
+        --rhs <file>          RHS vector path (required)
+        --format <fmt>        Input format: triplets|matrix-market (default: triplets)
+        --mults <n>           Number of chained multiplies (default: 10)
+        --output <file>       Save resulting vector to path
+        --verbose             Verbose kernel statistics
+        --no-build            Skip cmake configure/build step (use existing build)
+        --help                Show this message
+EOF
+}
+
+require_cmd() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Error: required command '$1' not found" >&2
+    exit 127
+  fi
+}
+
+clean_build() {
+  require_cmd cmake
+  cmake -S "$ROOT_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
+  cmake --build "$BUILD_DIR" --clean-first -j
+}
+
+cmd_mult() {
+  if [[ $# -lt 1 ]]; then
+    echo "Error: mult requires <matrix_file>" >&2
+    exit 1
+  fi
+  local matrix_file="$1"; shift
+  local rhs_file=""
+  local format="triplets"
+  local mults=10
+  local output=""
+  local verbose=0
+  local skip_build=0
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --rhs)
+        rhs_file="$2"; shift 2 ;;
+      --format)
+        format="$2"; shift 2 ;;
+      --mults|--iterations)
+        mults="$2"; shift 2 ;;
+      --output)
+        output="$2"; shift 2 ;;
+      --verbose)
+        verbose=1; shift ;;
+      --no-build)
+        skip_build=1; shift ;;
+      --help|-h)
+        print_usage; exit 0 ;;
+      --)
+        shift; break ;;
+      *)
+        echo "Unknown option: $1" >&2
+        exit 1 ;;
+    esac
+  done
+
+  if [[ ! -f "$matrix_file" ]]; then
+    echo "Error: matrix file '$matrix_file' not found" >&2
+    exit 1
+  fi
+
+  if [[ -z "$rhs_file" ]]; then
+    echo "Error: --rhs <file> must be provided" >&2
+    exit 1
+  fi
+
+  if [[ ! -f "$rhs_file" ]]; then
+    echo "Error: rhs file '$rhs_file' not found" >&2
+    exit 1
+  fi
+
+  if [[ $skip_build -eq 0 ]]; then
+    clean_build
+  fi
+
+  local exe="${BUILD_DIR}/example"
+  if [[ ! -x "$exe" ]]; then
+    echo "Error: executable '$exe' not found" >&2
+    exit 1
+  fi
+
+  args=("--matrix" "$matrix_file" "--format" "$format" "--mults" "$mults")
+  if [[ -n "$rhs_file" ]]; then
+    args+=("--rhs" "$rhs_file")
+  fi
+  if [[ -n "$output" ]]; then
+    args+=("--output" "$output")
+  fi
+  if [[ $verbose -eq 1 ]]; then
+    args+=("--verbose")
+  fi
+
+  "$exe" "${args[@]}"
+}
+
+main() {
+  if [[ $# -lt 1 ]]; then
+    print_usage
+    exit 1
+  fi
+  local cmd="$1"; shift
+  case "$cmd" in
+    mult) cmd_mult "$@" ;;
+    -h|--help|help) print_usage ;;
+    *)
+      echo "Unknown command: $cmd" >&2
+      print_usage
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
