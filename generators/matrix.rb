@@ -21,6 +21,11 @@ unless n_blocks > 0 && block_size > 0
   exit 1
 end
 
+unless File.directory?(outfile)
+  warn "outfile directory must exist"
+  exit 1
+end
+
 File.open(outfile, "wb") do |f|
   n_blocks.times do |i|
     block_start = i * block_size
