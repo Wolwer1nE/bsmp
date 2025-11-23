@@ -12,21 +12,20 @@
    ```bash
    git clone 
    ```
-2. Create a build directory and navigate into it:
+2. We have `bin/*` scripts for building and running examples.
+   To build the project, run:
    ```bash
-   mkdir build
-   cd build
+   bin/g matrix data/100.txt 100 4
    ```
-3. Run CMake to configure the project:
-   ```bash
-   cmake ..       
-   ```
-4. Build the project:
-   ```bash
-   make -j$(nproc)
-   ``` 
+   This will create a block sparse matrix with 100 blocks of size 4x4 and save it to `data/100.txt` with right-hand side vector in `data/rhs_100.txt`.
 
-It should also work on Ubuntu 22.04 and WSL by hitting F5 in VSCode.
+    After generating the matrix, you can run the multiplication example:
+    ```bash
+    bin/r mult data/100.txt --mults 10 --verbose
+    ``` 
+
+    This will build and run the multiplication example 10 times, printing verbose output.
+    It should also work on Ubuntu 22.04 and WSL by hitting F5 in VSCode, but you will have to provide inputs.
 
 ## Available Modules
 
