@@ -2,17 +2,29 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Configure (CMake)",
-      "type": "shell",
-      "command": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release",
-      "problemMatcher": "$gcc",
-      "group": "build"
+      "type": "cmake",
+      "label": "CMake: build",
+      "command": "build",
+      "targets": [
+        "all"
+      ],
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "detail": "Задача шаблона CMake сборка",
     },
     {
-      "label": "Build (CMake)",
+      "label": "Configure (CMake)",
       "type": "shell",
-      "command": "cmake --build build -j",
-      "dependsOn": ["Configure (CMake)"],
+      "command": "cmake",
+      "args": [
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-DCMAKE_BUILD_TYPE=Release"
+      ],
       "problemMatcher": "$gcc",
       "group": "build"
     },
@@ -20,21 +32,47 @@
       "label": "Run example",
       "type": "shell",
       "command": "./build/example",
-      "dependsOn": ["Build (CMake)"],
+      "args": [],
+      "dependsOn": [
+        "CMake: build"
+      ],
       "problemMatcher": []
     },
     {
       "label": "Run BiCGStab example",
       "type": "shell",
-      "command": "./build/example_bicgstab data/bicgstab_matrix.txt data/bicgstab_rhs.txt",
-      "dependsOn": ["Build (CMake)"],
+      "command": "./build/example_bicgstab",
+      "args": [
+        "data/bicgstab_matrix.txt",
+        "data/bicgstab_rhs.txt"
+      ],
+      "dependsOn": [
+        "CMake: build"
+      ],
       "problemMatcher": []
     },
     {
       "label": "Test BiCGStab (full pipeline)",
       "type": "shell",
       "command": "./test_bicgstab.sh",
+      "args": [],
       "problemMatcher": []
-    }
+    },
+    {
+      "label": "Solve with BiCGStab",
+      "type": "shell",
+      "command": "bin/r",
+      "args": [
+        "solve",
+        "--method",
+        "bicgstab",
+        "--matrix",
+        "data/bsmp1.txt",
+        "--rhs",
+        "data/bsmp1_rhs.txt",
+        "--no-build"
+      ],
+      "problemMatcher": []
+    },
   ]
 }
