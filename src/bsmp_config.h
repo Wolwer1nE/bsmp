@@ -2,7 +2,7 @@
 #define BSMP_CONFIG_H
 
 #ifndef BSMP_BLOCK_SIZE
-#define BSMP_BLOCK_SIZE 4
+#define BSMP_BLOCK_SIZE 3
 #endif
 
 namespace bsmp {

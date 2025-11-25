@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 # Compile-time block size configuration
-set(BSMP_BLOCK_SIZE 4 CACHE STRING "Compile-time block size for BlockSparseMatrix")
+set(BSMP_BLOCK_SIZE 3)
 message(STATUS "BSMP_BLOCK_SIZE = ${BSMP_BLOCK_SIZE}")
 
 # CUDA architectures (can be overridden: -DCMAKE_CUDA_ARCHITECTURES=86)
