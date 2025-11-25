@@ -40,8 +40,13 @@ bin/r mult data/100.txt --rhs data/rhs_100.txt --mults 10 --verbose
 ```
 Data should be generated using the generator script in `generators/matrix.rb`.
 
-### src/bicgstab (IN PROGRESS)
+### src/bicgstab 
 Implements the BiCGSTAB iterative method for solving systems of linear equations with block sparse matrices
+
+```bash
+bin/r solve -m bicgstab --matrix data/bsmp1.txt --rhs data/bsmp1_rhs.txt --output data/bsmp1_x.txt
+```
+
 ### src/generalized_eigen (IN PROGRESS)
 Implements methods for solving generalized eigenvalue problems with block sparse matrices.
 
@@ -63,11 +68,11 @@ Will also generate right-hand side vector with name `rhs_output_file.txt`.
 Scripts for comparing BSMP performance with Matlab's built-in functions and visualizing results.
 
 #### spymatrix.m
-Generates a sparse matrix in MATLAB format and makes nice plot. Can compute bandwidth.
+Reads a sparse matrix in MATLAB format and makes nice plot. Can compute bandwidth.
 
 #### multiplication.m
 Multiplies a sparse matrix by a vector
 
 #### slae.m
 
-Solves a system of linear equations with a sparse matrix in MATLAB.
+Solves a system of linear equations with a sparse matrix in MATLAB, loads external solution for comparison.
