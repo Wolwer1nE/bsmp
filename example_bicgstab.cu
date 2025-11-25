@@ -38,14 +38,15 @@ static bool write_vector_file(const std::string& path, const std::vector<float>&
 int main(int argc, char** argv) {
     std::cout << "=== BiCGStab Solver Test ===" << std::endl;
     
-    // Parse command line arguments
-    std::string matrix_file = "data/matrix_A_simple.txt";
-    std::string rhs_file = "data/rhs_blocks.txt";
-    std::string output_file = "";
-    
-    if (argc >= 2) matrix_file = argv[1];
-    if (argc >= 3) rhs_file = argv[2];
-    if (argc >= 4) output_file = argv[3];
+    // Parse command line arguments (no defaults; require input paths)
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0]
+                  << " <matrix_file> <rhs_file> [output_file]" << std::endl;
+        return 2;
+    }
+    std::string matrix_file = argv[1];
+    std::string rhs_file = argv[2];
+    std::string output_file = argc >= 4 ? argv[3] : std::string("");
     
     std::cout << "Matrix file: " << matrix_file << std::endl;
     std::cout << "RHS file: " << rhs_file << std::endl;
