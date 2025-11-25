@@ -21,7 +21,7 @@ unless n_blocks > 0 && block_size > 0
   exit 1
 end
 
-unless File.directory?(outfile)
+unless Dir.exist?(File.dirname(outfile))
   warn "outfile directory must exist"
   exit 1
 end
