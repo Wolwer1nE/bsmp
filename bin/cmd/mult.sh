@@ -1,10 +1,23 @@
 # shellcheck shell=bash
+mult_usage() {
+  cat <<'EOF'
+Usage: bin/r mult <matrix_file> [options]
+
+Clean builds the project and runs the multiplication test.
+
+Options:
+  --rhs <file>          RHS vector path (required)
+  --format <fmt>        Input format: triplets|matrix-market (default: triplets)
+  --mults <n>           Number of chained multiplies (default: 10)
+  --output <file>       Save resulting vector to path
+  --verbose             Verbose kernel statistics
+  --no-build            Skip cmake configure/build step (use existing build)
+  -h, --help            Show this message
+EOF
+}
+
 cmd_mult() {
-  if [[ $# -lt 1 ]]; then
-    echo "Error: mult requires <matrix_file>" >&2
-    exit 1
-  fi
-  local matrix_file="$1"; shift
+  local matrix_file=""
   local rhs_file=""
   local format="triplets"
   local mults=10
@@ -12,8 +25,11 @@ cmd_mult() {
   local verbose=0
   local skip_build=0
 
+  # Parse args (support -h without requiring positional)
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      -h|--help)
+        mult_usage; exit 0 ;;
       --rhs)
         rhs_file="$2"; shift 2 ;;
       --format)
@@ -26,15 +42,25 @@ cmd_mult() {
         verbose=1; shift ;;
       --no-build)
         skip_build=1; shift ;;
-      --help|-h)
-        print_usage; exit 0 ;;
       --)
         shift; break ;;
+      -*)
+        echo "Unknown option: $1" >&2; exit 1 ;;
       *)
-        echo "Unknown option: $1" >&2
-        exit 1 ;;
+        if [[ -z "$matrix_file" ]]; then
+          matrix_file="$1"; shift
+        else
+          echo "Unexpected argument: $1" >&2; exit 1
+        fi
+        ;;
     esac
   done
+
+  if [[ -z "$matrix_file" ]]; then
+    echo "Error: mult requires <matrix_file>" >&2
+    echo "Try 'bin/r mult -h' for more information." >&2
+    exit 1
+  fi
 
   if [[ ! -f "$matrix_file" ]]; then
     echo "Error: matrix file '$matrix_file' not found" >&2

@@ -10,27 +10,10 @@ print_usage() {
 Usage: bin/r <command> [options]
 
 Commands:
-  mult <matrix_file> [options]
-      Clean builds the project and runs the CUDA multiply test.
-      Options:
-        --rhs <file>          RHS vector path (required)
-        --format <fmt>        Input format: triplets|matrix-market (default: triplets)
-        --mults <n>           Number of chained multiplies (default: 10)
-        --output <file>       Save resulting vector to path
-        --verbose             Verbose kernel statistics
-        --no-build            Skip cmake configure/build step (use existing build)
-        --help                Show this message
+  mult
+  solve
 
-  solve -m <method> [options]
-      Solve a system Ax=b using the selected method.
-      Currently supported methods: bicgstab
-      Options:
-        -m, --method <name>   Solver method (required)
-        --matrix <file>       Input matrix in triplet format (required)
-        --rhs <file>          RHS vector path (required)
-        --output <file>       Save solution vector to path
-        --no-build            Skip cmake configure/build step (use existing build)
-        --help                Show this message
+Run 'bin/r <command> -h' for detailed help.
 EOF
 }
 
