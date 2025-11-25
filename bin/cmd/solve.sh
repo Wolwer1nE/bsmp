@@ -1,4 +1,21 @@
 # shellcheck shell=bash
+solve_usage() {
+  cat <<'EOF'
+Usage: bin/r solve -m <method> [options]
+
+Solve a system Ax=b using the selected method.
+Currently supported methods: bicgstab
+
+Options:
+  -m, --method <name>   Solver method (required)
+  --matrix <file>       Input matrix in triplet format (required)
+  --rhs <file>          RHS vector path (required)
+  --output <file>       Save solution vector to path
+  --no-build            Skip cmake configure/build step (use existing build)
+  -h, --help            Show this message
+EOF
+}
+
 cmd_solve() {
   local method=""
   local matrix_file=""
@@ -8,6 +25,8 @@ cmd_solve() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      -h|--help)
+        solve_usage; exit 0 ;;
       -m|--method)
         method="$2"; shift 2 ;;
       --matrix)
@@ -18,8 +37,6 @@ cmd_solve() {
         output_file="$2"; shift 2 ;;
       --no-build)
         skip_build=1; shift ;;
-      --help|-h)
-        print_usage; exit 0 ;;
       --)
         shift; break ;;
       *)
