@@ -1,8 +1,9 @@
 #ifndef BSMP_BICGSTAB_H
 #define BSMP_BICGSTAB_H
 
-#include "block_sparse_matrix.h"
 #include <cuda_runtime.h>
+
+#include "block_sparse_matrix.h"
 
 // BiCGStab (Bi-Conjugate Gradient Stabilized) solver for Ax = b
 // Suitable for non-symmetric, non-positive-definite matrices
@@ -27,4 +28,4 @@ bool bicgstab(BlockSparseMatrix& A,
               int& iters_out,
               float& resid_out);
 
-#endif // BSMP_BICGSTAB_H
+#endif  // BSMP_BICGSTAB_H
