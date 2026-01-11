@@ -1,13 +1,15 @@
+#include <cuda_runtime.h>
+
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
 #include "block_sparse_matrix.h"
 #include "triplet_loader.h"
-#include <vector>
-#include <iostream>
-#include <cuda_runtime.h>
-#include <fstream>
-#include <sstream>
-#include <chrono>
-#include <algorithm>
-#include <cmath>
 
 struct Options {
     std::string format = "triplets";
@@ -20,12 +22,21 @@ struct Options {
 
 static bool read_vector_file(const std::string& path, std::vector<float>& out) {
     std::ifstream in(path);
-    if (!in) return false; float v; while (in >> v) out.push_back(v); return true;
+    if (!in)
+        return false;
+    float v;
+    while (in >> v)
+        out.push_back(v);
+    return true;
 }
 
 static bool write_vector_file(const std::string& path, const std::vector<float>& v) {
     std::ofstream out(path);
-    if (!out) return false; for (size_t i=0;i<v.size();++i) { out << v[i] << '\n'; }
+    if (!out)
+        return false;
+    for (size_t i = 0; i < v.size(); ++i) {
+        out << v[i] << '\n';
+    }
     return true;
 }
 
@@ -48,7 +59,8 @@ static void print_usage() {
 }
 
 static bool parse_cli(int argc, char** argv, Options& opt) {
-    if (argc < 2) return false;
+    if (argc < 2)
+        return false;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg == "--matrix" && i + 1 < argc) {
@@ -81,15 +93,23 @@ static bool parse_cli(int argc, char** argv, Options& opt) {
     return true;
 }
 
-static bool load_matrix_by_format(const std::string& fmt, const std::string& path,
-                                  BlockSparseMatrixConfig& cfg, std::vector<int>& br, std::vector<int>& bc, std::vector<float>& bd) {
-    std::string f = fmt; for(char& c:f) c=(char)std::tolower((unsigned char)c);
+static bool load_matrix_by_format(
+    const std::string& fmt,
+    const std::string& path,
+    BlockSparseMatrixConfig& cfg,
+    std::vector<int>& br,
+    std::vector<int>& bc,
+    std::vector<float>& bd) {
+    std::string f = fmt;
+    for (char& c : f)
+        c = (char)std::tolower((unsigned char)c);
     if (f == "triplets" || f == "triplet" || f == "tripletss") {
         return load_triplet_file_as_block_sparse(path, bsmp::kBlockSize, cfg, br, bc, bd);
     } else if (f == "matrix-market" || f == "mm" || f == "mtx") {
         return load_matrix_market_as_block_sparse(path, bsmp::kBlockSize, cfg, br, bc, bd);
     } else {
-        std::cerr << "Unknown format: " << fmt << std::endl; return false;
+        std::cerr << "Unknown format: " << fmt << std::endl;
+        return false;
     }
 }
 

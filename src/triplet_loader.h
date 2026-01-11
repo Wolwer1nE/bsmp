@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+
 #include "block_sparse_matrix.h"
 
 // Read a file with triplets (i j v) where i and j are zero-based integer
@@ -31,7 +32,7 @@ bool load_triplet_file_as_block_sparse(const std::string& path,
 // Convenience: build a BlockSparseMatrix instance (on host) from a triplet file.
 // Caller owns the returned pointer. Returns nullptr on failure.
 BlockSparseMatrix* load_triplet_file_to_matrix(const std::string& path,
-                                              int block_size);
+                                               int block_size);
 
 // Load a Matrix Market file (coordinate, real). Supports 'general' and will
 // expand 'symmetric' by mirroring off-diagonal entries.
@@ -46,4 +47,4 @@ bool load_matrix_market_as_block_sparse(const std::string& path,
 BlockSparseMatrix* load_matrix_market_to_matrix(const std::string& path,
                                                 int block_size);
 
-#endif // TRIPLET_LOADER_H
+#endif  // TRIPLET_LOADER_H
