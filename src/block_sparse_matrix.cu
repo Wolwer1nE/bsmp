@@ -7,6 +7,7 @@
 
 int THREADS_COUNT = 128;
 
+/// @brief Helper macro for CUDA errors
 #define CHECK_CUDA(call)                                                 \
     do {                                                                 \
         cudaError_t err = call;                                          \
@@ -58,7 +59,7 @@ __global__ void block_sparse_matvec_kernel(
     atomicAdd(&y[global_row], sum);
 }
 
-// Transpose multiplication kernel
+/// @brief Transpose multiplication kernel
 __global__ void block_sparse_matvec_transpose_kernel(
     const int* block_rows,
     const int* block_cols,

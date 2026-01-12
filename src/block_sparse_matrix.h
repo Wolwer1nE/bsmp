@@ -29,22 +29,24 @@ class BlockSparseMatrix {
                     const std::vector<int>& block_cols,
                     const std::vector<float>& block_data);
 
-    // Matrix-vector multiplication: y = A * x
-    // y will be overwritten
+    /// @brief Matrix-vector multiplication: `y = A * x`
+    /// @note `y` will be overwritten
     void multiply(const float* d_x, float* d_y, cudaStream_t stream = 0);
 
-    // Matrix-vector multiplication with addition: y += A * x
+    /// @brief Matrix-vector multiplication with addition: `y += A * x`
     void multiplyAdd(const float* d_x, float* d_y, cudaStream_t stream = 0);
 
-    // Matrix-vector multiplication with transposed matrix: y = A^T * x
+    /// @brief Matrix-vector multiplication with transposed matrix: `y = A^T * x`
     void multiplyTranspose(const float* d_x, float* d_y, cudaStream_t stream = 0);
 
-    // Get matrix configuration
+    /// @brief Get matrix configuration
     BlockSparseMatrixConfig getConfig() const { return config_; }
 
-    // Get device pointers to internal data
+    /// @brief Get device pointers to internal data
     const int* getBlockRowsDevice() const { return d_block_rows_; }
+    /// @brief Get device pointers to internal data
     const int* getBlockColsDevice() const { return d_block_cols_; }
+    /// @brief Get device pointers to internal data
     const float* getBlockDataDevice() const { return d_block_data_; }
 
    private:
