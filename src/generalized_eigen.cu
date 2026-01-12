@@ -9,7 +9,7 @@ namespace bsmp {
 
 namespace {
 
-// Vector norm
+/// @brief Vector norm
 float vectorNorm(const std::vector<float>& v) {
     float sum = 0.0f;
     for (float val : v) {
@@ -18,7 +18,7 @@ float vectorNorm(const std::vector<float>& v) {
     return std::sqrt(sum);
 }
 
-// Normalize vector
+/// @brief Normalize vector
 void normalizeVector(std::vector<float>& v) {
     float norm = vectorNorm(v);
     if (norm > 1e-15f) {
@@ -28,7 +28,7 @@ void normalizeVector(std::vector<float>& v) {
     }
 }
 
-// Scalar dot product
+/// @brief Scalar dot product
 float dotProduct(const std::vector<float>& a, const std::vector<float>& b) {
     float sum = 0.0f;
     for (size_t i = 0; i < a.size(); ++i) {
@@ -37,8 +37,8 @@ float dotProduct(const std::vector<float>& a, const std::vector<float>& b) {
     return sum;
 }
 
-// Gram-Schmidt orthogonalization
-// v = v - sum((v^T * b_i) * b_i) for all b_i in basis
+/// @brief Gram-Schmidt orthogonalization
+/// @note `v = v - sum((v^T * b_i) * b_i)` for all `b_i` in basis
 void orthogonalize(std::vector<float>& v, const std::vector<std::vector<float>>& basis) {
     for (const auto& b : basis) {
         float proj = dotProduct(v, b);
@@ -49,9 +49,10 @@ void orthogonalize(std::vector<float>& v, const std::vector<std::vector<float>>&
     normalizeVector(v);
 }
 
-// Rayleigh quotient: λ = (v^T * A * v) / (v^T * B * v)
-float rayleighQuotient(BlockSparseMatrix& A, BlockSparseMatrix& B,
-                       const std::vector<float>& v, float* d_v, float* d_Av, float* d_Bv) {
+/// @brief Rayleigh quotient: `λ = (v^T * A * v) / (v^T * B * v)`
+float rayleighQuotient(
+    BlockSparseMatrix& A, BlockSparseMatrix& B,
+    const std::vector<float>& v, float* d_v, float* d_Av, float* d_Bv) {
     int n = v.size();
 
     cudaMemcpy(d_v, v.data(), n * sizeof(float), cudaMemcpyHostToDevice);
@@ -70,10 +71,10 @@ float rayleighQuotient(BlockSparseMatrix& A, BlockSparseMatrix& B,
     return numerator / denominator;
 }
 
-// BiCGStab-based method of inverse iterations with shift
-// A*v = λ*B*v -> (A - shift*B)*v = 0:
-// Solves A*x = B*v_prev, normalizes x to get v_new
-// λ = (v^T * A * v) / (v^T * B * v)
+/// @brief BiCGStab-based method of inverse iterations with shift
+/// `A*v = λ*B*v -> (A - shift*B)*v = 0`
+/// @note Solves A*x = B*v_prev, normalizes x to get v_new
+/// `λ = (v^T * A * v) / (v^T * B * v)`
 bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
                                float shift,
                                float& eigenvalue, std::vector<float>& eigenvector,
@@ -133,7 +134,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
         float denominator = dotProduct(eigenvector, Bv);
 
         if (std::abs(denominator) < 1e-15f) {
-            std::cerr << "Division by zero iin Rayleigh quotient" << std::endl;
+            std::cerr << "Division by zero in Rayleigh quotient" << std::endl;
             break;
         }
 

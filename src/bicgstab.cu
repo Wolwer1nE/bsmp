@@ -6,7 +6,7 @@
 
 #include "bicgstab.h"
 
-// Helper macro for cuBLAS errors
+/// @brief Helper macro for cuBLAS errors
 #define CUBLAS_CHECK(call)                                                              \
     do {                                                                                \
         cublasStatus_t status = call;                                                   \
@@ -16,9 +16,9 @@
         }                                                                               \
     } while (0)
 
-// BiCGStab implementation
-// Algorithm from: H.A. van der Vorst, "Bi-CGSTAB: A Fast and Smoothly Converging
-// Variant of Bi-CG for the Solution of Nonsymmetric Linear Systems", 1992
+/// @brief BiCGStab implementation
+/// @note Algorithm from: H.A. van der Vorst, "Bi-CGSTAB: A Fast and Smoothly Converging
+/// Variant of Bi-CG for the Solution of Nonsymmetric Linear Systems", 1992
 bool bicgstab(BlockSparseMatrix& A,
               const float* d_b,
               float* d_x,
