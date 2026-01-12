@@ -89,6 +89,15 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
     cudaMalloc(&d_rhs, n * sizeof(float));
     cudaMalloc(&d_solution, n * sizeof(float));
 
+    /// @brief Frees `d_v`, `d_Av`, `d_Bv`, `d_rhs` and `d_solution` device buffers
+    auto cleanup = [=] {
+        cudaFree(d_v);
+        cudaFree(d_Av);
+        cudaFree(d_Bv);
+        cudaFree(d_rhs);
+        cudaFree(d_solution);
+    };
+
     // Initial guess (random vector)
     // FIXME: use better initialization? P.A.
     eigenvector.resize(n);
@@ -138,11 +147,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
 
         if (iter > 5 && rel_change < tol) {
             eigenvalue = lambda;
-            cudaFree(d_v);
-            cudaFree(d_Av);
-            cudaFree(d_Bv);
-            cudaFree(d_rhs);
-            cudaFree(d_solution);
+            cleanup();
             return true;
         }
 
@@ -152,11 +157,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
             if (stagnation_count > 20) {
                 // We are all stuck, return current estimate
                 eigenvalue = lambda;
-                cudaFree(d_v);
-                cudaFree(d_Av);
-                cudaFree(d_Bv);
-                cudaFree(d_rhs);
-                cudaFree(d_solution);
+                cleanup();
                 return false;
             }
         } else {
@@ -167,11 +168,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
     }
 
     eigenvalue = prev_lambda;
-    cudaFree(d_v);
-    cudaFree(d_Av);
-    cudaFree(d_Bv);
-    cudaFree(d_rhs);
-    cudaFree(d_solution);
+    cleanup();
     return false;
 }
 
