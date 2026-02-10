@@ -9,4 +9,4 @@ namespace bsmp {
 static constexpr int kBlockSize = BSMP_BLOCK_SIZE;
 }
 
-#endif // BSMP_CONFIG_H
+#endif  // BSMP_CONFIG_H

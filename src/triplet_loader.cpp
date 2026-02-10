@@ -1,13 +1,14 @@
 #include "triplet_loader.h"
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <unordered_map>
-#include <map>
+
 #include <cctype>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <unordered_map>
 
 struct PairHash {
-    size_t operator()(const std::pair<int,int>& p) const noexcept {
+    size_t operator()(const std::pair<int, int>& p) const noexcept {
         return (static_cast<size_t>(p.first) << 32) ^ static_cast<size_t>(p.second);
     }
 };
@@ -26,14 +27,16 @@ bool load_triplet_file_as_block_sparse(const std::string& path,
 
     int max_row = -1, max_col = -1;
 
-    std::map<std::pair<int,int>, std::vector<float>> blocks;
+    std::map<std::pair<int, int>, std::vector<float>> blocks;
 
     std::string line;
     while (std::getline(in, line)) {
         // trim leading spaces
         size_t p = line.find_first_not_of(" \t\r\n");
-        if (p == std::string::npos) continue;
-        if (line[p] == '#') continue;
+        if (p == std::string::npos)
+            continue;
+        if (line[p] == '#')
+            continue;
 
         // Whitespace or comma separated values
         long long i, j;
@@ -45,7 +48,8 @@ bool load_triplet_file_as_block_sparse(const std::string& path,
             // ok
         } else {
             // fallback: try space-separated
-            ss.clear(); ss.str(line);
+            ss.clear();
+            ss.str(line);
             if (!(ss >> i >> j >> v)) {
                 std::cerr << "Warning: could not parse line: '" << line << "'" << std::endl;
                 continue;
@@ -108,7 +112,7 @@ bool load_triplet_file_as_block_sparse(const std::string& path,
 }
 
 BlockSparseMatrix* load_triplet_file_to_matrix(const std::string& path,
-                                              int block_size) {
+                                               int block_size) {
     BlockSparseMatrixConfig cfg;
     std::vector<int> brow, bcol;
     std::vector<float> bdata;
@@ -123,7 +127,11 @@ BlockSparseMatrix* load_triplet_file_to_matrix(const std::string& path,
     return m;
 }
 
-static inline std::string to_lower(std::string s){ for(char& c: s) c = (char)std::tolower((unsigned char)c); return s; }
+static inline std::string to_lower(std::string s) {
+    for (char& c : s)
+        c = (char)std::tolower((unsigned char)c);
+    return s;
+}
 
 bool load_matrix_market_as_block_sparse(const std::string& path,
                                         int block_size,
@@ -151,7 +159,10 @@ bool load_matrix_market_as_block_sparse(const std::string& path,
     std::istringstream hs(header);
     std::string mm, obj, fmt, field, symm;
     hs >> mm >> obj >> fmt >> field >> symm;
-    obj = to_lower(obj); fmt = to_lower(fmt); field = to_lower(field); symm = to_lower(symm);
+    obj = to_lower(obj);
+    fmt = to_lower(fmt);
+    field = to_lower(field);
+    symm = to_lower(symm);
     if (!(obj == "matrix" && fmt == "coordinate" && (field == "real" || field == "double"))) {
         std::cerr << "Unsupported Matrix Market (need coordinate real)" << std::endl;
         return false;
@@ -161,22 +172,33 @@ bool load_matrix_market_as_block_sparse(const std::string& path,
     // skip comments
     std::string line;
     do {
-        if (!std::getline(in, line)) { std::cerr << "Unexpected EOF before size line" << std::endl; return false; }
+        if (!std::getline(in, line)) {
+            std::cerr << "Unexpected EOF before size line" << std::endl;
+            return false;
+        }
     } while (!line.empty() && line[0] == '%');
 
     // size line: m n nnz
     std::istringstream ssz(line);
-    long long m, n, nnz; ssz >> m >> n >> nnz;
-    if (!ssz) { std::cerr << "Failed to parse size line" << std::endl; return false; }
+    long long m, n, nnz;
+    ssz >> m >> n >> nnz;
+    if (!ssz) {
+        std::cerr << "Failed to parse size line" << std::endl;
+        return false;
+    }
 
-    std::map<std::pair<int,int>, std::vector<float>> blocks;
+    std::map<std::pair<int, int>, std::vector<float>> blocks;
     for (long long k = 0; k < nnz; ++k) {
-        long long ii, jj; double vv;
-        if (!(in >> ii >> jj >> vv)) { std::cerr << "Failed to read entry #" << k << std::endl; return false; }
+        long long ii, jj;
+        double vv;
+        if (!(in >> ii >> jj >> vv)) {
+            std::cerr << "Failed to read entry #" << k << std::endl;
+            return false;
+        }
         // Matrix Market is 1-based
         int i = (int)ii - 1;
         int j = (int)jj - 1;
-        auto put = [&](int r, int c, double val){
+        auto put = [&](int r, int c, double val) {
             int brow = r / block_size, bcol = c / block_size;
             int li = r % block_size, lj = c % block_size;
             auto key = std::make_pair(brow, bcol);
@@ -190,7 +212,8 @@ bool load_matrix_market_as_block_sparse(const std::string& path,
             }
         };
         put(i, j, vv);
-        if (symmetric && i != j) put(j, i, vv);
+        if (symmetric && i != j)
+            put(j, i, vv);
     }
 
     config_out.num_rows = (int)m;
@@ -212,8 +235,13 @@ bool load_matrix_market_as_block_sparse(const std::string& path,
 }
 
 BlockSparseMatrix* load_matrix_market_to_matrix(const std::string& path, int block_size) {
-    BlockSparseMatrixConfig cfg; std::vector<int> br, bc; std::vector<float> bd;
-    if (!load_matrix_market_as_block_sparse(path, block_size, cfg, br, bc, bd)) return nullptr;
+    BlockSparseMatrixConfig cfg;
+    std::vector<int> br, bc;
+    std::vector<float> bd;
+    if (!load_matrix_market_as_block_sparse(path, block_size, cfg, br, bc, bd))
+        return nullptr;
     cfg.block_size = bsmp::kBlockSize;
-    BlockSparseMatrix* m = new BlockSparseMatrix(cfg); m->initialize(br, bc, bd); return m;
+    BlockSparseMatrix* m = new BlockSparseMatrix(cfg);
+    m->initialize(br, bc, bd);
+    return m;
 }
