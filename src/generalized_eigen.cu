@@ -50,9 +50,11 @@ void orthogonalize(std::vector<float>& v, const std::vector<std::vector<float>>&
 }
 
 /// @brief Rayleigh quotient: `λ = (v^T * A * v) / (v^T * B * v)`
-float rayleighQuotient(
+/// @note Overwrites `numerator` and `denominator` parameters
+void rayleighQuotient(
     BlockSparseMatrix& A, BlockSparseMatrix& B,
-    const std::vector<float>& v, float* d_v, float* d_Av, float* d_Bv) {
+    const std::vector<float>& v, float* d_v, float* d_Av, float* d_Bv,
+    float& numerator, float& denominator) {
     int n = v.size();
 
     cudaMemcpy(d_v, v.data(), n * sizeof(float), cudaMemcpyHostToDevice);
@@ -65,10 +67,8 @@ float rayleighQuotient(
     cudaMemcpy(Av.data(), d_Av, n * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(Bv.data(), d_Bv, n * sizeof(float), cudaMemcpyDeviceToHost);
 
-    float numerator = dotProduct(v, Av);
-    float denominator = dotProduct(v, Bv);
-
-    return numerator / denominator;
+    numerator = dotProduct(v, Av);
+    denominator = dotProduct(v, Bv);
 }
 
 /// @brief BiCGStab-based method of inverse iterations with shift
@@ -88,6 +88,15 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
     cudaMalloc(&d_Bv, n * sizeof(float));
     cudaMalloc(&d_rhs, n * sizeof(float));
     cudaMalloc(&d_solution, n * sizeof(float));
+
+    /// @brief Frees `d_v`, `d_Av`, `d_Bv`, `d_rhs` and `d_solution` device buffers
+    auto cleanup = [=] {
+        cudaFree(d_v);
+        cudaFree(d_Av);
+        cudaFree(d_Bv);
+        cudaFree(d_rhs);
+        cudaFree(d_solution);
+    };
 
     // Initial guess (random vector)
     // FIXME: use better initialization? P.A.
@@ -122,16 +131,8 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
 
         orthogonalize(eigenvector, previous_eigenvectors);
 
-        cudaMemcpy(d_v, eigenvector.data(), n * sizeof(float), cudaMemcpyHostToDevice);
-        A.multiply(d_v, d_Av);
-        B.multiply(d_v, d_Bv);
-
-        std::vector<float> Av(n), Bv(n);
-        cudaMemcpy(Av.data(), d_Av, n * sizeof(float), cudaMemcpyDeviceToHost);
-        cudaMemcpy(Bv.data(), d_Bv, n * sizeof(float), cudaMemcpyDeviceToHost);
-
-        float numerator = dotProduct(eigenvector, Av);
-        float denominator = dotProduct(eigenvector, Bv);
+        float numerator, denominator;
+        rayleighQuotient(A, B, eigenvector, d_v, d_Av, d_Bv, numerator, denominator);
 
         if (std::abs(denominator) < 1e-15f) {
             std::cerr << "Division by zero in Rayleigh quotient" << std::endl;
@@ -146,11 +147,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
 
         if (iter > 5 && rel_change < tol) {
             eigenvalue = lambda;
-            cudaFree(d_v);
-            cudaFree(d_Av);
-            cudaFree(d_Bv);
-            cudaFree(d_rhs);
-            cudaFree(d_solution);
+            cleanup();
             return true;
         }
 
@@ -160,11 +157,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
             if (stagnation_count > 20) {
                 // We are all stuck, return current estimate
                 eigenvalue = lambda;
-                cudaFree(d_v);
-                cudaFree(d_Av);
-                cudaFree(d_Bv);
-                cudaFree(d_rhs);
-                cudaFree(d_solution);
+                cleanup();
                 return false;
             }
         } else {
@@ -175,11 +168,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
     }
 
     eigenvalue = prev_lambda;
-    cudaFree(d_v);
-    cudaFree(d_Av);
-    cudaFree(d_Bv);
-    cudaFree(d_rhs);
-    cudaFree(d_solution);
+    cleanup();
     return false;
 }
 

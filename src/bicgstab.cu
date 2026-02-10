@@ -51,7 +51,7 @@ bool bicgstab(BlockSparseMatrix& A,
     // Compute initial residual: r = b - A*x
     A.multiply(d_x, d_r);  // r = A*x
     float alpha_init = -1.0f;
-    float beta_init = 1.0f;
+    // float beta_init = 1.0f; never referenced
     CUBLAS_CHECK(cublasSaxpy(handle, n, &alpha_init, d_r, 1, (float*)d_b, 1));  // This modifies d_b, fix below
 
     // Actually we need to copy b to r first, then subtract A*x
