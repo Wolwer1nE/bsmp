@@ -76,6 +76,12 @@ else()
   )
 endif()
 
+# MSVC dies if that is not set for every target. TODO: figure out why
+# set_target_properties(example PROPERTIES
+# POSITION_INDEPENDENT_CODE ON
+# CUDA_SEPARABLE_COMPILATION ON
+# )
+
 # Installation (optional)
 install(TARGETS bsmp example
   RUNTIME DESTINATION bin

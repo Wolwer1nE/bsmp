@@ -180,6 +180,8 @@ int main(int argc, char** argv) {
     std::cout << "Total time: " << total_ms << " ms for " << opt.iterations << " multiplies" << std::endl;
     std::cout << "Average per multiply: " << avg_ms << " ms" << std::endl;
 
+    std::cerr << "[PERF]:" << opt.iterations << ';' << total_ms << ';' << avg_ms << '\n'; 
+
     if (opt.verbose) {
         double max_abs = 0.0;
         for (float v : hy) {

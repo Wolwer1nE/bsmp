@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# This won't work on windows because of file extensions. TODO: Think about that.
 mult_usage() {
   cat <<'EOF'
 Usage: bin/r mult <matrix_file> [options]
