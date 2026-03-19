@@ -83,6 +83,12 @@ cmd_mult() {
   fi
 
   local exe="${BUILD_DIR}/example"
+  if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+	  exe="${BUILD_DIR}/Release/example.exe"
+  else
+	  exe="${BUILD_DIR}/example"
+  fi
+  
   if [[ ! -x "$exe" ]]; then
     echo "Error: executable '$exe' not found" >&2
     exit 1
