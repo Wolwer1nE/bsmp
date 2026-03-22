@@ -10,7 +10,11 @@ using CairoMakie
 set_theme!(merge(theme_black(), theme_latexfonts()))
 
 # Generate and save the plot
-fig = plot_csv("../output/cylshell/block1.csv")
+data = read_all_data("../output/cylshell/")
+
+println(names(data))
+
+fig = plot_metric(data)
 
 # Create output folder and save
 mkpath("plots")

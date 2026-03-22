@@ -86,7 +86,9 @@ log "Processing matrices in $MATSET..."
 > "$OUTPUT_FILE"
 
 TARGET_DIR="$ROOT_DIR/data/$MATSET"
+
 echo "matrix_name;num_iter;full_time;avg_time" > "$ROOT_DIR/performance.log"
+
 for mtx_file in "$TARGET_DIR"/*.mtx; do
   [[ ! -f "$mtx_file" ]] && continue
   mtx_name=$(basename "$mtx_file" .mtx)
@@ -101,6 +103,7 @@ for mtx_file in "$TARGET_DIR"/*.mtx; do
     --no-build >> "$OUTPUT_FILE" 2>&1
   echo "" >> "$OUTPUT_FILE"
 done
+
 mv "$ROOT_DIR/performance.log" "$ROOT_DIR/output/$MATSET/$(basename "$OUTPUT_FILE" .txt).csv"
 
 log "Done. Results saved to: $OUTPUT_FILE"

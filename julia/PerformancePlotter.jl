@@ -1,55 +1,98 @@
-# FIXME: AI SCRIPT! TO BE INSPECTED AND UPDATED!
-# TODO: add multiple metrics to plot automatically
 module PerformancePlotter
 
-using CSV
-using DataFrames
-using Makie
+using CSV, DataFrames, CategoricalArrays, Makie
 
-export plot_csv
+export plot_metric, read_all_data
 
-function plot_csv(filename::String; col="avg_time")
-    # Read the CSV file
-    df = CSV.read(filename, DataFrame, delim=';')
-    
-    # Convert column names to strings for consistent handling
-    rename!(df, [string(name) for name in names(df)])
-    
-    # Convert matrix_name to String if it's not already
-    if eltype(df.matrix_name) <: AbstractString
-        df.matrix_name = String.(df.matrix_name)
+# ---------------------------
+# Data loading
+# ---------------------------
+
+function read_data(file)
+    file_df = CSV.read(file, DataFrame)
+    insertcols!(file_df, :alg_name => splitext(basename(file))[1])
+    return file_df
+end
+
+function read_all_data(dir)
+    files = filter(f -> occursin(r".*\.csv$", f), readdir(dir))
+    df = DataFrame()
+
+    for file in files
+        full_path = joinpath(dir, file)
+        append!(df, read_data(full_path))
     end
-    
-    # Ensure the column exists
-    if !(col in names(df))
-        error("Column '$col' not found. Available columns: $(names(df))")
+
+    return df
+end
+
+# ---------------------------
+# Plotting
+# ---------------------------
+
+function plot_metric(data, metric=:avg_time)
+
+    # Validate columns
+    for col in [:matrix_name, :alg_name, metric]
+        hasproperty(data, col) || error("No column $col was found in the data")
     end
-    
-    # Get the data to plot
-    x_data = 1:nrow(df)  # Use numeric positions for x-axis
-    x_labels = df.matrix_name
-    y_data = df[!, col]
-    
-    # Convert y_data to Float64 if it's not numeric
-    if !(eltype(y_data) <: Number)
-        y_data = parse.(Float64, y_data)
+
+    # Ensure numeric metric
+    if !(eltype(data[!, metric]) <: Number)
+        data[!, metric] = parse.(Float64, data[!, metric])
     end
-    
-    # Create the plot
-    fig = Figure(size=(800, 600))
-    ax = Axis(fig[1, 1], 
-              title="Bar Plot",
-              xlabel="Matrix Name",
-              ylabel="Average Time (s)",
-            )
-    
-    # Use barplot with numeric x positions
-    barplot!(ax, x_data, y_data, color=:blue)
-    
-    # Set custom x-axis ticks and labels
-    ax.xticks = (x_data, x_labels)
-    ax.xticklabelrotation = π/4
-    
+
+    # Categorical encoding (stable!)
+    alg_cat = categorical(data.alg_name)
+    mat_cat = categorical(data.matrix_name)
+
+    data.alg_code = levelcode.(alg_cat)
+    data.matrix_code = levelcode.(mat_cat)
+
+    algorithms = levels(alg_cat)
+    matrices = levels(mat_cat)
+
+    x = data.matrix_code
+    colors = cgrad(:lapaz10, length(algorithms), categorical = true)
+
+    # ---------------------------
+    # Plot
+    # ---------------------------
+
+    fig = Figure()
+    ax = Axis(fig[1, 1],
+        title = "Dodged Barplot",
+        xlabel = "Matrix",
+        ylabel = string(metric)
+    )
+
+    barplot!(
+        ax,
+        x,
+        data[!, metric],
+        dodge = data.alg_code,
+        color = colors[data.alg_code],
+        direction = :x,
+        flip_labels_at=0.85,
+        bar_labels = :y,
+        label_size = 10,
+        color_over_background=:red,
+        color_over_bar=:white,
+    )
+
+    # X ticks
+    ax.xticks = (1:length(matrices), string.(matrices))
+
+    # ---------------------------
+    # Manual legend (correct way)
+    # ---------------------------
+
+    elements = [
+        PolyElement(color = colors[i]) for i in 1:length(algorithms)
+    ]
+
+    Legend(fig[1, 2], elements, string.(algorithms), "Algorithm")
+
     return fig
 end
 
