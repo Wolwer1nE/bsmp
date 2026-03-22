@@ -7,7 +7,7 @@ include("PerformancePlotter.jl")
 using .PerformancePlotter
 using CairoMakie
 
-set_theme!(merge(theme_black(), theme_latexfonts()))
+set_theme!(theme_latexfonts())
 
 # Generate and save the plot
 data = read_all_data("../output/cylshell/")

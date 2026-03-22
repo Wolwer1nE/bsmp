@@ -4,10 +4,6 @@ using CSV, DataFrames, CategoricalArrays, Makie
 
 export plot_metric, read_all_data
 
-# ---------------------------
-# Data loading
-# ---------------------------
-
 function read_data(file)
     file_df = CSV.read(file, DataFrame)
     insertcols!(file_df, :alg_name => splitext(basename(file))[1])
@@ -25,10 +21,6 @@ function read_all_data(dir)
 
     return df
 end
-
-# ---------------------------
-# Plotting
-# ---------------------------
 
 function plot_metric(data, metric=:avg_time)
 
@@ -53,17 +45,14 @@ function plot_metric(data, metric=:avg_time)
     matrices = levels(mat_cat)
 
     x = data.matrix_code
-    colors = cgrad(:lapaz10, length(algorithms), categorical = true)
-
-    # ---------------------------
-    # Plot
-    # ---------------------------
+    colors = cgrad(:darkrainbow, length(algorithms), categorical = true)
 
     fig = Figure()
     ax = Axis(fig[1, 1],
-        title = "Dodged Barplot",
-        xlabel = "Matrix",
-        ylabel = string(metric)
+        ylabel = "Матрица",
+        xlabel = string(metric),
+        xminorticksvisible = true, 
+        xminorgridvisible = true
     )
 
     barplot!(
@@ -76,16 +65,11 @@ function plot_metric(data, metric=:avg_time)
         flip_labels_at=0.85,
         bar_labels = :y,
         label_size = 10,
-        color_over_background=:red,
+        color_over_background=:black,
         color_over_bar=:white,
     )
 
-    # X ticks
-    ax.xticks = (1:length(matrices), string.(matrices))
-
-    # ---------------------------
-    # Manual legend (correct way)
-    # ---------------------------
+    ax.yticks = (1:length(matrices), string.(matrices))
 
     elements = [
         PolyElement(color = colors[i]) for i in 1:length(algorithms)
@@ -96,4 +80,4 @@ function plot_metric(data, metric=:avg_time)
     return fig
 end
 
-end # module
+end # PerformancePlotter
