@@ -4,6 +4,9 @@
 /* FIXME: there could've been a generic Logger class with different sinks. 
    I didn't bother, maybe you will */
 
+#ifndef PERFORMANCE_LOGGER_H
+#define PERFORMANCE_LOGGER_H
+
 #include <fstream>
 #include <string>
 #include <cstdarg>
@@ -64,3 +67,4 @@ public:
 
 #define LOG_CONV(fmt, ...) LOG_METRIC(MetricsLogLevel::CONV, fmt, ##__VA_ARGS__)
 #define LOG_PERF(fmt, ...) LOG_METRIC(MetricsLogLevel::PERF, fmt, ##__VA_ARGS__)
+#endif // PERFORMANCE_LOGGER_H
