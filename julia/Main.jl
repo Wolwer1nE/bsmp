@@ -1,25 +1,23 @@
-# FIXME: AI SCRIPT! TO BE INSPECTED AND UPDATED!
-#import Pkg
-#Pkg.add(["CSV", "DataFrames", "Makie"])
-# TODO: add dependency management as an isolated environment 
-
 include("PerformancePlotter.jl")
 using .PerformancePlotter
 using CairoMakie
 
 set_theme!(theme_latexfonts())
 
-# Generate and save the plot
-data = read_all_data("../output/cylshell/")
+matsets = ["cylshell"]
 
-println(names(data))
+for matset in matsets
+    data = read_all_data("../output/$matset/")
 
-fig = plot_metric(data)
+    println(names(data))
 
-# Create output folder and save
-mkpath("plots")
-save(joinpath("plots", "barplot.png"), fig)
-save(joinpath("plots", "barplot.pdf"), fig)
-save(joinpath("plots", "barplot.svg"), fig)
+    fig = plot_metric(data)
 
-println("Done! Check the 'plots' folder.")
+    # Create output folder and save
+    mkpath("../output/$matset/plots")
+    save(joinpath("plots", "barplot.png"), fig)
+    save(joinpath("plots", "barplot.pdf"), fig)
+    save(joinpath("plots", "barplot.svg"), fig)
+
+    println("Done! Check the 'plots' folder.")
+end

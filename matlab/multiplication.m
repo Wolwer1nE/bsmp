@@ -1,4 +1,14 @@
-function benchmark_matrix_multiply(matrix_path, rhs_path, output_fid)
+function [name, n_runs, full_time, avg_time] = benchmark_matrix_multiply(matrix_path, rhs_path, output_fid)
+% benchmark_matrix_multiply   Benchmark SpMV task 
+%   [name, n_runs, full_time, avg_time] = benchmark_matrix_multiply(matrix_path, rhs_path)
+%   Inputs: 
+%       matrix_path - path to a matrix file
+%       rhs_path    - path to right-hand side file
+%   Outputs: 
+%       name      - name of the matrix
+%       n_runs    - number of runs performed
+%       full_time - total time for all runs (ms)
+%       avg_time  - average time per run (ms)
     format long;
     [A, ~,  ~, ~] = mmread(matrix_path);
     n_runs = 10;
@@ -15,7 +25,8 @@ function benchmark_matrix_multiply(matrix_path, rhs_path, output_fid)
     % convert to milliseconds %
     t = t * 1000;
     
-    fprintf(output_fid, "%s;%d;%f;%f\n", name, n_runs, t, t/n_runs);
+    full_time = t;
+    avg_time = t / n_runs;
 end
 
 matsets = [ "cylshell" ];
@@ -32,7 +43,8 @@ for matset_idx = 1:length(matsets)
         rhs_name = sprintf('%s.rhs', matrix_name);
         matrix_path = fullfile(folder_path, file_name);
         rhs_path = fullfile(folder_path, rhs_name);
-        benchmark_matrix_multiply(matrix_path, rhs_path, out_fid)
+        [name, n_runs, full_time, avg_time] = benchmark_matrix_multiply(matrix_path, rhs_path);
+        fprintf(out_fid, "%s;%d;%f;%f\n", name, n_runs, full_time, avg_time);
     end
     fclose(out_fid);
 end
