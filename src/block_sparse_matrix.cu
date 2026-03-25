@@ -4,18 +4,18 @@
 #include <iostream>
 
 #include "block_sparse_matrix.h"
+#include "loggers/utility_logger.h"
 
 int THREADS_COUNT = 128;
 
 /// @brief Helper macro for CUDA errors
-#define CHECK_CUDA(call)                                                 \
-    do {                                                                 \
-        cudaError_t err = call;                                          \
-        if (err != cudaSuccess) {                                        \
-            std::cerr << "CUDA error at " << __FILE__ << ":" << __LINE__ \
-                      << ": " << cudaGetErrorString(err) << std::endl;   \
-            exit(EXIT_FAILURE);                                          \
-        }                                                                \
+#define CHECK_CUDA(call)                              \
+    do {                                              \
+        cudaError_t err = call;                       \
+        if (err != cudaSuccess) {                     \
+            LOG_ERROR("%s", cudaGetErrorString(err)); \
+            exit(EXIT_FAILURE);                       \
+        }                                             \
     } while (0)
 
 __global__ void block_sparse_matvec_kernel(
@@ -111,9 +111,9 @@ BlockSparseMatrix::BlockSparseMatrix(const BlockSparseMatrixConfig& config)
     : config_(config) {
     // Enforce compile-time block size
     if (config_.block_size != bsmp::kBlockSize) {
-        std::cerr << "Error: Block size mismatch. Provided " << config_.block_size
-                  << ", but compiled with BSMP_BLOCK_SIZE=" << bsmp::kBlockSize << std::endl;
-        std::cerr << "Recompile or adjust input to match compile-time block size." << std::endl;
+        LOG_FATAL("Block size mismatch. Provided: %d, but compiled with BSMP_BLOCK_SIZE=%d",
+                  config_.block_size, bsmp::kBlockSize);
+        LOG_FATAL("Recompile or adjust input to match compile-time block size");
         std::abort();
     }
     allocateMemory();

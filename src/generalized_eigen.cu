@@ -4,6 +4,7 @@
 
 #include "bicgstab.h"
 #include "generalized_eigen.h"
+#include "loggers/utility_logger.h"
 
 namespace bsmp {
 
@@ -123,8 +124,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
         // FIXME 5 is a magic number here P.A.
         if (!solved && iter > 5) {
             // BiCGStab did not converge, but we will use the current solution anyway
-            std::cerr << "BiCGStab failed to converge at iter= " << iter
-                      << " (residual is " << bicg_resid << ")" << std::endl;
+            LOG_WARN("BiCGStab failed to converge at iter=%d (residual is %d)", iter, bicg_resid);
         }
 
         cudaMemcpy(eigenvector.data(), d_solution, n * sizeof(float), cudaMemcpyDeviceToHost);
@@ -135,7 +135,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
         rayleighQuotient(A, B, eigenvector, d_v, d_Av, d_Bv, numerator, denominator);
 
         if (std::abs(denominator) < 1e-15f) {
-            std::cerr << "Division by zero in Rayleigh quotient" << std::endl;
+            LOG_ERROR("Division by zero in Rayleigh quotient");
             break;
         }
 
@@ -156,6 +156,7 @@ bool inverseIterationWithShift(BlockSparseMatrix& A, BlockSparseMatrix& B,
             stagnation_count++;
             if (stagnation_count > 20) {
                 // We are all stuck, return current estimate
+                LOG_INFO("BiCGStab stagnates, returning value");
                 eigenvalue = lambda;
                 cleanup();
                 return false;
@@ -190,14 +191,14 @@ EigenResult solveGeneralizedEigen(
     auto configB = B.getConfig();
 
     if (configA.num_rows != configB.num_rows || configA.num_cols != configB.num_cols) {
-        std::cerr << "A and B should have same size" << std::endl;
+        LOG_ERROR("A and B should have same size");
         result.converged = false;
         return result;
     }
-
-    std::cout << "Solving A*v = λ*B*v" << std::endl;
-    std::cout << "Size: " << configA.num_rows << " x " << configA.num_cols << std::endl;
-    std::cout << "Searching for " << num_eigenvalues << " eigen values..." << std::endl;
+    
+    LOG_DEBUG("Solving A*v = λ*B*v");
+    LOG_DEBUG("Size: %d x %d", configA.num_rows, configA.num_cols);
+    LOG_DEBUG("Searching for %d eigen values...", num_eigenvalues);
     // FIXME: We need to find eigens at arbitrary locations, for now we just do shifts P.A.
 
     for (int k = 0; k < num_eigenvalues; ++k) {
@@ -208,15 +209,15 @@ EigenResult solveGeneralizedEigen(
         if (k > 0) {
             shift = result.eigenvalues[k - 1] + 0.01f;
         }
-
-        std::cout << "  Вычисление λ[" << k << "]... " << std::flush;
+        
+        LOG_DEBUG("Calculating λ[%d]...", k);
         bool converged = inverseIterationWithShift(A, B, shift, eigenvalue, eigenvector,
                                                    result.eigenvectors, max_iter, tol);
 
         if (converged) {
-            std::cout << eigenvalue << " ✓" << std::endl;
+            LOG_DEBUG("%d ✓", eigenvalue);
         } else {
-            std::cout << eigenvalue << " ✗" << std::endl;
+            LOG_DEBUG("%d ✗", eigenvalue);
             result.converged = false;
         }
 

@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.18)
 project(bsmp LANGUAGES CXX CUDA)
 
 # Standards
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_STANDARD 14)
+set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 # Compile-time block size configuration
 set(BSMP_BLOCK_SIZE 3)
@@ -69,11 +69,11 @@ target_compile_definitions(example_bicgstab PRIVATE BSMP_BLOCK_SIZE=${BSMP_BLOCK
 
 # Nice warnings for host compiler (avoid pedantic warnings in CUDA front-end)
 if(MSVC)
-  target_compile_options(bsmp PRIVATE /W4)
+target_compile_options(bsmp PRIVATE /W4)
 else()
-  target_compile_options(bsmp PRIVATE
-    $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic>
-  )
+target_compile_options(bsmp PRIVATE
+$<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic>
+)
 endif()
 
 # Installation (optional)
