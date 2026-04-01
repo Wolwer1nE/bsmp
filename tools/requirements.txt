@@ -1,0 +1,5 @@
+# Python dependencies for tools in tools/
+# Note: petsc4py requires a PETSc installation and may need special install steps
+numpy
+scipy
+petsc4py

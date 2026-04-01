@@ -49,6 +49,11 @@ class BlockSparseMatrix {
     /// @brief Get device pointers to internal data
     const float* getBlockDataDevice() const { return d_block_data_; }
 
+    /// @brief Copy BSMP block structure to host-side vectors.
+    void copyToHost(std::vector<int>& block_rows,
+                    std::vector<int>& block_cols,
+                    std::vector<float>& block_data) const;
+
    private:
     BlockSparseMatrixConfig config_;
 

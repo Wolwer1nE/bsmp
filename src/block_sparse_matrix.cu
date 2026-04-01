@@ -165,11 +165,39 @@ void BlockSparseMatrix::initialize(const std::vector<int>& block_rows,
                           cudaMemcpyHostToDevice));
 }
 
+void BlockSparseMatrix::copyToHost(std::vector<int>& block_rows,
+                                   std::vector<int>& block_cols,
+                                   std::vector<float>& block_data) const {
+    const int num_blocks = config_.num_nonzero_blocks;
+    const int block_area = config_.block_size * config_.block_size;
+
+    block_rows.resize(num_blocks);
+    block_cols.resize(num_blocks);
+    block_data.resize(num_blocks * block_area);
+
+    if (num_blocks == 0) {
+        return;
+    }
+
+    CHECK_CUDA(cudaMemcpy(block_rows.data(), d_block_rows_,
+                          num_blocks * sizeof(int),
+                          cudaMemcpyDeviceToHost));
+    CHECK_CUDA(cudaMemcpy(block_cols.data(), d_block_cols_,
+                          num_blocks * sizeof(int),
+                          cudaMemcpyDeviceToHost));
+    CHECK_CUDA(cudaMemcpy(block_data.data(), d_block_data_,
+                          num_blocks * block_area * sizeof(float),
+                          cudaMemcpyDeviceToHost));
+}
+
 void BlockSparseMatrix::multiply(const float* d_x, float* d_y, cudaStream_t stream) {
     // Обнуляем выходной вектор перед вычислением
     cudaMemsetAsync(d_y, 0, config_.num_rows * sizeof(float), stream);
 
-    int threads = 128;  // FIXME: I am not sure about this value. P.A.
+    int threads = THREADS_COUNT;
+    threads = (threads / config_.block_size) * config_.block_size;
+    if (threads < config_.block_size)
+        threads = config_.block_size;
     int matrix_blocks_per_cuda_block = threads / config_.block_size;
     if (matrix_blocks_per_cuda_block < 1)
         matrix_blocks_per_cuda_block = 1;
@@ -191,6 +219,9 @@ void BlockSparseMatrix::multiply(const float* d_x, float* d_y, cudaStream_t stre
 void BlockSparseMatrix::multiplyAdd(const float* d_x, float* d_y, cudaStream_t stream) {
     // Accumulate result without zeroing: y += A * x
     int threads = THREADS_COUNT;
+    threads = (threads / config_.block_size) * config_.block_size;
+    if (threads < config_.block_size)
+        threads = config_.block_size;
     int matrix_blocks_per_cuda_block = threads / config_.block_size;
     if (matrix_blocks_per_cuda_block < 1)
         matrix_blocks_per_cuda_block = 1;

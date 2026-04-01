@@ -3,6 +3,7 @@
 
 #include <cuda_runtime.h>
 
+#include "amg_preconditioner.h"
 #include "block_sparse_matrix.h"
 
 /// @brief BiCGStab (Bi-Conjugate Gradient Stabilized) solver for `Ax = b`.
@@ -22,5 +23,23 @@ bool bicgstab(BlockSparseMatrix& A,
               float tol,
               int& iters_out,
               float& resid_out);
+
+bool bicgstab(BlockSparseMatrix& A,
+              const float* d_b,
+              float* d_x,
+              int max_iters,
+              float tol,
+              int& iters_out,
+              float& resid_out,
+              LinearPreconditioner& preconditioner);
+
+bool bicgstab(BlockSparseMatrix& A,
+              const float* d_b,
+              float* d_x,
+              int max_iters,
+              float tol,
+              int& iters_out,
+              float& resid_out,
+              const PreconditionerOptions& preconditioner_options);
 
 #endif  // BSMP_BICGSTAB_H

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+name=$1
+
+
+
+bin/r eigen \
+  --stiffness data/martynova/${name}/${name}_Orb_phi_Ct.txt \
+   --mass data/martynova/${name}/${name}_Orb_phi_Mt.txt \
+   --coords data/martynova/${name}/${name}_Orb_phi_nodes.txt \
+  --ordering block-wise \
+  --scaling diag \
+  --modes 6 \
+  --dielectric-sign negated
