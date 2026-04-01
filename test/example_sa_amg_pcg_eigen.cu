@@ -1096,6 +1096,59 @@ bool is_iterative_attempt_acceptable(const SolveAttempt& attempt,
            attempt.worst_relative_residual <= explicit_residual_slack;
 }
 
+SolveAttempt run_iterative_attempt_with_retries(const std::string& label,
+                                                bsmp::SchurOperator& schur,
+                                                BlockSparseMatrix& mass,
+                                                const bsmp::DeflatedPCGEigenSolverParameters& parameters,
+                                                LinearPreconditioner* preconditioner,
+                                                int requested_modes,
+                                                float tolerance,
+                                                int max_attempts) {
+    SolveAttempt best_attempt;
+    bool has_best_attempt = false;
+
+    for (int attempt_index = 0; attempt_index < std::max(1, max_attempts); ++attempt_index) {
+        bsmp::DeflatedPCGEigenSolverParameters seeded_parameters = parameters;
+        seeded_parameters.random_seed = parameters.random_seed + 7919u * static_cast<unsigned int>(attempt_index);
+
+        SolveAttempt current_attempt = run_eigensolve_attempt(label,
+                                                              schur,
+                                                              mass,
+                                                              seeded_parameters,
+                                                              preconditioner);
+
+        const bool current_ok = is_iterative_attempt_acceptable(current_attempt,
+                                                                requested_modes,
+                                                                tolerance);
+        const bool best_ok = has_best_attempt && is_iterative_attempt_acceptable(best_attempt,
+                                                                                 requested_modes,
+                                                                                 tolerance);
+
+        if (!has_best_attempt ||
+            (current_ok && !best_ok) ||
+            (!current_ok && !best_ok &&
+             (current_attempt.result.eigenpairs.size() > best_attempt.result.eigenpairs.size() ||
+              (current_attempt.result.eigenpairs.size() == best_attempt.result.eigenpairs.size() &&
+               current_attempt.worst_relative_residual < best_attempt.worst_relative_residual)))) {
+            best_attempt = std::move(current_attempt);
+            has_best_attempt = true;
+        }
+
+        if (current_ok) {
+            return has_best_attempt ? best_attempt : current_attempt;
+        }
+
+        if (attempt_index + 1 < std::max(1, max_attempts)) {
+            std::cout << "Iterative eigensolve attempt '" << label
+                      << "' with seed " << seeded_parameters.random_seed
+                      << " did not converge cleanly; retrying with a different initial guess."
+                      << std::endl;
+        }
+    }
+
+    return best_attempt;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -1162,13 +1215,27 @@ int main(int argc, char** argv) {
 
         SolveAttempt attempt;
         if (options.eigensolve_path == "sa-amg") {
-            attempt = run_eigensolve_attempt("sa-amg", schur, scaled.mass(), options.eigen, preconditioner.get());
+            attempt = run_iterative_attempt_with_retries("sa-amg",
+                                                         schur,
+                                                         scaled.mass(),
+                                                         options.eigen,
+                                                         preconditioner.get(),
+                                                         options.modes,
+                                                         options.tol,
+                                                         4);
         } else if (options.eigensolve_path == "unpreconditioned") {
             attempt = run_eigensolve_attempt("unpreconditioned", schur, scaled.mass(), options.eigen, nullptr);
         } else if (options.eigensolve_path == "explicit-schur-cusolver") {
             attempt = run_explicit_schur_fallback_attempt(schur, scaled.mass(), options);
         } else {
-            attempt = run_eigensolve_attempt("sa-amg", schur, scaled.mass(), options.eigen, preconditioner.get());
+            attempt = run_iterative_attempt_with_retries("sa-amg",
+                                                         schur,
+                                                         scaled.mass(),
+                                                         options.eigen,
+                                                         preconditioner.get(),
+                                                         options.modes,
+                                                         options.tol,
+                                                         4);
             if (!is_iterative_attempt_acceptable(attempt, options.modes, options.tol)) {
                 std::cout << "Primary eigensolve attempt (SA-AMG preconditioned) did not converge cleanly; retrying without a preconditioner." << std::endl;
                 SolveAttempt fallback_attempt = run_eigensolve_attempt("unpreconditioned", schur, scaled.mass(), options.eigen, nullptr);

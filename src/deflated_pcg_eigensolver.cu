@@ -17,7 +17,9 @@ namespace bsmp {
 namespace {
 
 constexpr float kEpsilon = 1e-8f;
-constexpr float kMassMetricToleranceCap = 1e-8f;
+// The eigensolver runs in single precision on the GPU, so chasing M-metric
+// orthogonality below ~1e-6 only amplifies roundoff noise on real piezo cases.
+constexpr float kMassMetricToleranceCap = 1e-6f;
 
 struct DeviceTransferWorkspace {
     float* d_in = nullptr;
@@ -235,7 +237,7 @@ float mass_inner_product_with_workspace(BlockSparseMatrix& mass,
                                         const std::vector<float>& rhs,
                                         DeviceTransferWorkspace& workspace) {
     const std::vector<float> mass_rhs = host_apply_block_matrix_with_workspace(mass, rhs, workspace);
-    return dot_product(lhs, mass_rhs);
+    return double_dot_product(lhs, mass_rhs);
 }
 
 float mass_norm_with_workspace(BlockSparseMatrix& mass,
@@ -275,7 +277,7 @@ MassDeflationSubspace build_mass_deflation_subspace_with_workspace(
 
         std::vector<float> q = candidate;
         for (size_t basis_index = 0; basis_index < subspace.basis.size(); ++basis_index) {
-            const float coefficient = dot_product(subspace.mass_basis[basis_index], q);
+            const float coefficient = double_dot_product(subspace.mass_basis[basis_index], q);
             for (size_t i = 0; i < q.size(); ++i) {
                 q[i] -= coefficient * subspace.basis[basis_index][i];
             }
@@ -364,8 +366,8 @@ bool host_apply_preconditioner(LinearPreconditioner& preconditioner,
 void project_against_current_state(const std::vector<float>& x,
                                    const std::vector<float>& mass_x,
                                    std::vector<float>& vector) {
-    const float denominator = std::max(dot_product(mass_x, x), kEpsilon);
-    const float coefficient = dot_product(mass_x, vector) / denominator;
+    const float denominator = std::max(double_dot_product(mass_x, x), kEpsilon);
+    const float coefficient = double_dot_product(mass_x, vector) / denominator;
     axpy(-coefficient, x, vector);
 }
 
@@ -660,8 +662,8 @@ DeflatedPCGEigenResult solve_deflated_pcg_eigenproblem(
 
             deflate_preconditioned_vector(deflation, z, parameters.tolerance * 0.1f);
             project_against_current_state(x, mx, z);
-            const float raw_rz = dot_product(residual, z);
-            const float residual_energy = std::max(dot_product(residual, residual), 0.0f);
+            const float raw_rz = double_dot_product(residual, z);
+            const float residual_energy = std::max(double_dot_product(residual, residual), 0.0f);
             if (!std::isfinite(raw_rz) || raw_rz <= std::max(parameters.tolerance * residual_energy, kEpsilon)) {
                 z = residual;
                 deflate_preconditioned_vector(deflation, z, metric_tolerance);
@@ -685,13 +687,13 @@ DeflatedPCGEigenResult solve_deflated_pcg_eigenproblem(
             }
 
             float beta = 0.0f;
-            float current_rz = std::max(dot_product(residual, z), 0.0f);
+            float current_rz = std::max(double_dot_product(residual, z), 0.0f);
             if (!std::isfinite(current_rz) || current_rz <= kEpsilon) {
                 z = residual;
                 project_against_current_state(x, mx, z);
                 previous_search.clear();
                 previous_rz = 0.0f;
-                current_rz = std::max(dot_product(residual, z), 0.0f);
+                current_rz = std::max(double_dot_product(residual, z), 0.0f);
             }
             // In the SA-AMG-preconditioned eigen solve, the linear-CG style
             // recurrence can become unstable on strongly coupled real piezo
