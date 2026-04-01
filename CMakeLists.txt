@@ -8,7 +8,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 # Compile-time block size configuration
-set(BSMP_BLOCK_SIZE 3)
+if(NOT DEFINED BSMP_BLOCK_SIZE)
+  set(BSMP_BLOCK_SIZE 3)
+endif()
 message(STATUS "BSMP_BLOCK_SIZE = ${BSMP_BLOCK_SIZE}")
 
 # CUDA architectures (can be overridden: -DCMAKE_CUDA_ARCHITECTURES=86)
@@ -68,13 +70,20 @@ target_link_libraries(example_bicgstab PRIVATE bsmp)
 target_compile_definitions(example_bicgstab PRIVATE BSMP_BLOCK_SIZE=${BSMP_BLOCK_SIZE})
 
 # Nice warnings for host compiler (avoid pedantic warnings in CUDA front-end)
-if(MSVC)
-  target_compile_options(bsmp PRIVATE /W4)
-else()
-  target_compile_options(bsmp PRIVATE
-    $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic>
-  )
-endif()
+# if(MSVC)
+#   target_compile_options(bsmp PRIVATE /W4)
+# else()
+#   target_compile_options(bsmp PRIVATE
+#     $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic>
+#   )
+# endif()
+
+# MSVC dies if that is not set for every target. TODO: figure out why
+set_target_properties(example PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+  CUDA_SEPARABLE_COMPILATION ON
+)
+
 
 # Installation (optional)
 install(TARGETS bsmp example

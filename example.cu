@@ -7,9 +7,11 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <string>
 
 #include "block_sparse_matrix.h"
 #include "triplet_loader.h"
+#include "loggers/performance_logger.h"
 
 struct Options {
     std::string format = "triplets";
@@ -19,6 +21,13 @@ struct Options {
     int iterations = 1;
     bool verbose = false;
 };
+
+std::string get_filename(const std::string& path) {
+    size_t pos = path.find_last_of("/\\");
+    std::string filename = (pos != std::string::npos) ? path.substr(pos + 1) : path;
+    size_t dot_pos = filename.find_last_of('.');
+    return (dot_pos != std::string::npos) ? filename.substr(0, dot_pos) : filename;
+}
 
 static bool read_vector_file(const std::string& path, std::vector<float>& out) {
     std::ifstream in(path);
@@ -114,6 +123,9 @@ static bool load_matrix_by_format(
 }
 
 int main(int argc, char** argv) {
+
+    MetricsLogger::init_logger("performance.log");
+
     Options opt;
     if (!parse_cli(argc, argv, opt)) {
         print_usage();
@@ -179,6 +191,10 @@ int main(int argc, char** argv) {
     double avg_ms = total_ms / static_cast<double>(opt.iterations);
     std::cout << "Total time: " << total_ms << " ms for " << opt.iterations << " multiplies" << std::endl;
     std::cout << "Average per multiply: " << avg_ms << " ms" << std::endl;
+
+
+    LOG_PERF("%s;%d;%f;%f", get_filename(opt.matrix_path), opt.iterations, total_ms, avg_ms);
+    std::cerr << "[PERF]:" << opt.iterations << ';' << total_ms << ';' << avg_ms << '\n'; 
 
     if (opt.verbose) {
         double max_abs = 0.0;
