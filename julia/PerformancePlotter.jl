@@ -88,10 +88,10 @@ function plot_metric(data, metric=:avg_time)
     n_cols = min(3, n_matrices)
     n_rows = ceil(Int, n_matrices / n_cols)
     
-    colors = cgrad(:alpine, n_algorithms, categorical = true)
+    colors = cgrad(:atlantic, n_algorithms, categorical = true)
     
     # Create figure with more vertical space for rotated labels
-    fig = Figure(size = (1200, 400 * n_rows + 67))
+    fig = Figure(size = (1200, 400 * n_rows + 80))
     
     # Create a subplot for each matrix
     for (i, matrix) in enumerate(matrices)
@@ -120,6 +120,8 @@ function plot_metric(data, metric=:avg_time)
             xticklabelsize = 10,
             yticklabelsize = 10,
             titlesize = 14,
+            # limits as padding
+            limits = (0.5, length(sorted_algorithms) + 0.5, 0, maximum(sorted_data[!, metric]) * 1.1)
         )
         
         bp = barplot!(
@@ -128,7 +130,7 @@ function plot_metric(data, metric=:avg_time)
             sorted_data[!, metric],
             color = [colors[findfirst(==(alg), algorithms)] for alg in sorted_algorithms],
             direction = :y,
-            flip_labels_at = 0.85,
+            flip_labels_at = 0.75,
             bar_labels = :y,
             label_size = 10,
             color_over_background = :black,
