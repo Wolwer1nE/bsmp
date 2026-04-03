@@ -15,9 +15,9 @@ for matset in matsets
 
     # Create output folder and save
     mkpath("../output/$matset/plots")
-    save(joinpath("plots", "barplot.png"), fig)
-    save(joinpath("plots", "barplot.pdf"), fig)
-    save(joinpath("plots", "barplot.svg"), fig)
+    save(joinpath("../output/$matset/plots", "barplot.png"), fig)
+    save(joinpath("../output/$matset/plots", "barplot.pdf"), fig)
+    save(joinpath("../output/$matset/plots", "barplot.svg"), fig)
 
     println("Done! Check the 'plots' folder.")
 end
