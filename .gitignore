@@ -2,7 +2,7 @@
 /build
 /cmake-build-debug
 # matrices and test results
-/output
+/output*/
 /data
 
 .vscode/settings.json
