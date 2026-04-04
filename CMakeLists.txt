@@ -13,6 +13,8 @@ if(NOT DEFINED BSMP_BLOCK_SIZE)
 endif()
 message(STATUS "BSMP_BLOCK_SIZE = ${BSMP_BLOCK_SIZE}")
 
+add_compile_options(-Wno-deprecated-gpu-targets)
+
 # CUDA architectures (can be overridden: -DCMAKE_CUDA_ARCHITECTURES=86)
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES OR CMAKE_CUDA_ARCHITECTURES STREQUAL "")
   # Default to a common baseline; adjust to your GPU for faster builds
