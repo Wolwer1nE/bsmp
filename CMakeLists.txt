@@ -46,6 +46,7 @@ else()
   message(STATUS "CUDAToolkit not found via package, relying on CUDA language cudart")
   # When CUDA is enabled as a language, the cudart library is available via cuda runtime library
   # On most systems linking is automatic, but we keep explicit to be safe when available
+  target_link_libraries(bsmp PUBLIC cudart cublas)
 endif()
 
 set_target_properties(bsmp PROPERTIES
