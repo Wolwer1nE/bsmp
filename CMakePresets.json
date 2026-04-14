@@ -10,7 +10,6 @@
             "name": "common",
             "description": "Common settings for all configurations",
             "hidden": true,
-            "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_STANDARD": "99",
@@ -32,7 +31,8 @@
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
-            }
+            },
+            "generator": "Unix Makefiles"
         },
         {
             "name": "windows-common",
