@@ -13,6 +13,8 @@ if(NOT DEFINED BSMP_BLOCK_SIZE)
 endif()
 message(STATUS "BSMP_BLOCK_SIZE = ${BSMP_BLOCK_SIZE}")
 
+add_compile_options(-Wno-deprecated-gpu-targets)
+
 # CUDA architectures (can be overridden: -DCMAKE_CUDA_ARCHITECTURES=86)
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES OR CMAKE_CUDA_ARCHITECTURES STREQUAL "")
   # Default to a common baseline; adjust to your GPU for faster builds
@@ -44,6 +46,7 @@ else()
   message(STATUS "CUDAToolkit not found via package, relying on CUDA language cudart")
   # When CUDA is enabled as a language, the cudart library is available via cuda runtime library
   # On most systems linking is automatic, but we keep explicit to be safe when available
+  target_link_libraries(bsmp PUBLIC cudart cublas)
 endif()
 
 set_target_properties(bsmp PROPERTIES

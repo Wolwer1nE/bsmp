@@ -192,8 +192,7 @@ int main(int argc, char** argv) {
     std::cout << "Total time: " << total_ms << " ms for " << opt.iterations << " multiplies" << std::endl;
     std::cout << "Average per multiply: " << avg_ms << " ms" << std::endl;
 
-
-    LOG_PERF("%s;%d;%f;%f", get_filename(opt.matrix_path), opt.iterations, total_ms, avg_ms);
+    LOG_PERF("%s;%d;%f;%f", get_filename(opt.matrix_path).c_str(), opt.iterations, total_ms, avg_ms);
     std::cerr << "[PERF]:" << opt.iterations << ';' << total_ms << ';' << avg_ms << '\n'; 
 
     if (opt.verbose) {
