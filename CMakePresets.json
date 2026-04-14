@@ -46,23 +46,15 @@
             },
             "generator": "Visual Studio 17 2022",
             "architecture": "x64",
-            "toolset": "host=x64"
-        },
-        {
-            "name": "msvc-debug",
-            "description": "Debug settings for Visual Studio on Windows",
-            "inherits": "windows-common",
+            "toolset": "host=x64",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
             }
         },
         {
-            "name": "msvc-release",
-            "description": "Release settings for Visual Studio on Windows",
-            "inherits": "windows-common",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
+            "name": "msvc",
+            "description": "Multi-config settings for Visual Studio on Windows",
+            "inherits": "windows-common"
         },
         {
             "name": "clang-debug",
@@ -103,6 +95,18 @@
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++"
             }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "msvc-debug-build",
+            "configurePreset": "msvc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "msvc-release-build",
+            "configurePreset": "msvc",
+            "configuration": "Release"
         }
     ]
 }
