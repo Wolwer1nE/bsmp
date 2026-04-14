@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.18)
 
 project(bsmp LANGUAGES CXX CUDA)
 
+include("cmake/Setup.cmake")
+
 # Standards
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -44,10 +46,7 @@ else()
   # On most systems linking is automatic, but we keep explicit to be safe when available
 endif()
 
-set_target_properties(bsmp PROPERTIES
-  POSITION_INDEPENDENT_CODE ON
-  CUDA_SEPARABLE_COMPILATION ON
-)
+bsmp_setup_target(bsmp)
 
 # Example executable
 add_executable(example example.cu)
