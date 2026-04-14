@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <cstdarg>
+#include <utility>
 
 #define ACTIVE_METRICS_LOG_LEVEL MetricsLogLevel::PERF
 
@@ -59,10 +60,29 @@ public:
     }
 };
 
+// Parametrized functor for logging
+template<bool Condition>
+struct log_if_enabled {
+    template<typename... Args>
+    static void call(Args&&... args) {
+        MetricsLogger::log_output(std::forward<Args>(args)...);
+    } 
+};
+
+// Specialization for false should do nothing
+template<>
+struct log_if_enabled<false> {
+    template<typename... Args>
+    static void call(Args&&...) {
+        // No op
+    }
+};
+
 #define LOG_METRIC(level, fmt, ...) do { \
-    if constexpr (static_cast<int>(level) >= static_cast<int>(ACTIVE_METRICS_LOG_LEVEL)) { \
-        MetricsLogger::log_output(fmt, ##__VA_ARGS__); \
-    }} while(0)
+    log_if_enabled< \
+         (static_cast<int>(level) >= static_cast<int>(ACTIVE_METRICS_LOG_LEVEL)) \
+    >::call(fmt, ##__VA_ARGS__); \
+    } while(0)
 
 
 #define LOG_CONV(fmt, ...) LOG_METRIC(MetricsLogLevel::CONV, fmt, ##__VA_ARGS__)
