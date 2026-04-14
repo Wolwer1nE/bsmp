@@ -68,13 +68,13 @@ target_link_libraries(example_bicgstab PRIVATE bsmp)
 target_compile_definitions(example_bicgstab PRIVATE BSMP_BLOCK_SIZE=${BSMP_BLOCK_SIZE})
 
 # Nice warnings for host compiler (avoid pedantic warnings in CUDA front-end)
-if(MSVC)
-  target_compile_options(bsmp PRIVATE /W4)
-else()
-  target_compile_options(bsmp PRIVATE
-    $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic>
-  )
-endif()
+# if(MSVC)
+#   target_compile_options(bsmp PRIVATE /W4)
+# else()
+#   target_compile_options(bsmp PRIVATE
+#     $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic>
+#   )
+# endif()
 
 # Installation (optional)
 install(TARGETS bsmp example
