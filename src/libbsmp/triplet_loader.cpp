@@ -1,4 +1,4 @@
-#include "triplet_loader.h"
+#include "libbsmp/triplet_loader.h"
 
 #include <cctype>
 #include <fstream>

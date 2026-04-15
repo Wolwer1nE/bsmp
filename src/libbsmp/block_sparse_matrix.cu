@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "block_sparse_matrix.h"
+#include "libbsmp/block_sparse_matrix.h"
 
 int THREADS_COUNT = 128;
 

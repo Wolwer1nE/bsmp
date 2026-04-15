@@ -4,10 +4,10 @@
 #include <cmath>
 #include <cstdio>
 
-#include "bicgstab.h"
+#include "libbsmp/bicgstab.h"
 
 /// @brief Helper macro for cuBLAS errors
-#define CUBLAS_CHECK(call)                                                              \
+#define CUBLAS_CHECK(call)                                                             \
     do {                                                                                \
         cublasStatus_t status = call;                                                   \
         if (status != CUBLAS_STATUS_SUCCESS) {                                          \

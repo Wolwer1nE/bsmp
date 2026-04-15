@@ -2,8 +2,8 @@
 #include <cmath>
 #include <iostream>
 
-#include "bicgstab.h"
-#include "generalized_eigen.h"
+#include "libbsmp/bicgstab.h"
+#include "libbsmp/generalized_eigen.h"
 
 namespace bsmp {
 

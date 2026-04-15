@@ -8,8 +8,8 @@
 #include <sstream>
 #include <vector>
 
-#include "block_sparse_matrix.h"
-#include "triplet_loader.h"
+#include "libbsmp/block_sparse_matrix.h"
+#include "libbsmp/triplet_loader.h"
 
 struct Options {
     std::string format = "triplets";

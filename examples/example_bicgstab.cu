@@ -6,9 +6,9 @@
 #include <sstream>
 #include <vector>
 
-#include "bicgstab.h"
-#include "block_sparse_matrix.h"
-#include "triplet_loader.h"
+#include "libbsmp/bicgstab.h"
+#include "libbsmp/block_sparse_matrix.h"
+#include "libbsmp/triplet_loader.h"
 
 static bool read_vector_file(const std::string& path, std::vector<float>& out) {
     std::ifstream in(path);
