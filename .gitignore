@@ -2,5 +2,6 @@
 /build
 /cmake-build-debug
 
-.vscode/settings.json
+# Why? It is useful to have common settings
+# .vscode/settings.json
 .venv/
