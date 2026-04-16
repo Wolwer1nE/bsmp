@@ -168,13 +168,13 @@ target_link_libraries(example_deflated_pcg_eigensolver_smoke PRIVATE bsmp)
 target_compile_definitions(example_deflated_pcg_eigensolver_smoke PRIVATE BSMP_BLOCK_SIZE=${BSMP_BLOCK_SIZE})
 
 # Nice warnings for host compiler (avoid pedantic warnings in CUDA front-end)
-if(MSVC)
-  target_compile_options(bsmp PRIVATE /W4)
-else()
-  target_compile_options(bsmp PRIVATE
-    $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic>
-  )
-endif()
+# if(MSVC)
+#   target_compile_options(bsmp PRIVATE /W4)
+# else()
+#   target_compile_options(bsmp PRIVATE
+#     $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic>
+#   )
+# endif()
 
 # Installation (optional)
 install(TARGETS bsmp example example_bicgstab example_gmres example_eigen example_sa_amg_pcg_eigen example_schur_smoke example_mixed_block_tail_smoke example_rbm_smoke example_regularized_elastic_smoke example_sa_amg_scaffold_smoke example_sa_amg_aggregation_smoke example_sa_amg_galerkin_smoke example_sa_amg_smoothing_smoke example_sa_amg_vcycle_smoke example_sa_amg_chebyshev_smoke example_mass_orthogonalization_smoke example_deflated_pcg_eigensolver_smoke
