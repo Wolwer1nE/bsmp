@@ -203,6 +203,19 @@ Scripts for comparing BSMP performance with Matlab's built-in functions and visu
 #### spymatrix.m
 Reads a sparse matrix in MATLAB format and makes nice plot. Can compute bandwidth.
 
+#### sparse_spy.py
+Python utility for MATLAB-like sparsity visualization from plain-text triplets.
+It understands files with entries like `row, col, value`, including files that
+contain both omitted zeros and explicitly written zero values.
+
+Explicit zeros are ignored automatically when drawing the sparsity pattern.
+
+Examples:
+```bash
+python3 tools/sparse_spy.py data/bsmp1.txt
+python3 tools/sparse_spy.py data/martynova/big4/big4_O_phi_Ct.txt --output big4.png
+```
+
 #### multiplication.m
 Multiplies a sparse matrix by a vector
 

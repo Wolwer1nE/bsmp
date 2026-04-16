@@ -2,4 +2,5 @@
 # Note: petsc4py requires a PETSc installation and may need special install steps
 numpy
 scipy
+matplotlib
 petsc4py
