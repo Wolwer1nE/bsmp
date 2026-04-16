@@ -108,5 +108,29 @@
             "configurePreset": "msvc",
             "configuration": "Release"
         }
+    ],
+    "testPresets": [
+        {
+            "name": "test-common",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error"
+            }
+        },
+        {
+            "inherits": "test-common",
+            "name": "test-msvc-debug",
+            "configurePreset": "msvc",
+            "configuration": "Debug"
+        },
+        {
+            "inherits": "test-common",
+            "name": "test-msvc-release",
+            "configurePreset": "msvc",
+            "configuration": "Release"
+        }
     ]
 }
