@@ -44,17 +44,36 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
             },
-            "generator": "Visual Studio 17 2022",
-            "architecture": "x64",
-            "toolset": "host=x64",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "toolset": {
+                "value": "host=x64",
+                "strategy": "external"
+            },
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "enableClangTidyCodeAnalysis": true,
+                    "enableMicrosoftCodeAnalysis": false,
+                    "intelliSenseMode": "windows-msvc-x64"
+                }
             }
         },
         {
             "name": "msvc",
             "description": "Multi-config settings for Visual Studio on Windows",
-            "inherits": "windows-common"
+            "inherits": "windows-common",
+            "generator": "Visual Studio 18 2026"
+        },
+        {
+            "name": "ninja-windows",
+            "description": "Multi-config settings for Ninja Multiconfig on Windows",
+            "inherits": "windows-common",
+            "generator": "Ninja Multi-Config"
         },
         {
             "name": "clang-debug",
@@ -62,7 +81,6 @@
             "inherits": "linux-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++"
             }
         },
@@ -72,7 +90,6 @@
             "inherits": "linux-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++"
             }
         },
@@ -82,7 +99,6 @@
             "inherits": "linux-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++"
             }
         },
@@ -92,7 +108,6 @@
             "inherits": "linux-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++"
             }
         }
@@ -106,6 +121,16 @@
         {
             "name": "msvc-release-build",
             "configurePreset": "msvc",
+            "configuration": "Release"
+        },
+        {
+            "name": "ninja-windows-debug-build",
+            "configurePreset": "ninja-windows",
+            "configuration": "Debug"
+        },
+        {
+            "name": "ninja-windows-release-build",
+            "configurePreset": "ninja-windows",
             "configuration": "Release"
         }
     ],

@@ -6,6 +6,7 @@ project(bsmp LANGUAGES CXX CUDA)
 include("cmake/Setup.cmake")
 include("cmake/FindCuda.cmake")
 include("cmake/AddTest.cmake")
+include("cmake/StaticAnalysis.cmake")
 
 add_subdirectory(src)
 add_subdirectory(examples)

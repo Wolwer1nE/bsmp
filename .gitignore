@@ -5,3 +5,9 @@
 # Why? It is useful to have common settings
 # .vscode/settings.json
 .venv/
+
+# for visual studio
+out/
+.vs/
+
+CMakeUserPresets.json

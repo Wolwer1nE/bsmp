@@ -1,0 +1,14 @@
+Checks: "
+        bugprone-*,
+        cppcoreguidelines-*,
+        google-*,
+        performance-*,
+        readability-identifier-naming,
+        misc-non-private-member-variables-in-classes,
+        misc-no-recursion,
+        misc-include-cleaner,
+        -performance-avoid-endl
+"
+WarningsAsErrors: ''
+HeaderFilterRegex: "^(src|include)/.*"
+FormatStyle: 'file'
