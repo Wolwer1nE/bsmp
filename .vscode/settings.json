@@ -1,5 +1,5 @@
 {
     "cmake.useCMakePresets": "always",
     "cmake.ctest.testExplorerIntegrationEnabled": true,
-    "cmake.ctest.testSuiteDelimiter": "/"
+    "cmake.ctest.testSuiteDelimiter": "."
 }
