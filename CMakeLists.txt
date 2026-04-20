@@ -2,17 +2,18 @@ cmake_minimum_required(VERSION 3.18)
 
 project(bsmp LANGUAGES CXX CUDA)
 
+include(CTest)
+enable_testing()
 
 include("cmake/Setup.cmake")
 include("cmake/FindCuda.cmake")
 include("cmake/AddTest.cmake")
 include("cmake/StaticAnalysis.cmake")
+include("cmake/Sanitizer.cmake")
 
 add_subdirectory(src)
 add_subdirectory(examples)
 
-include(CTest)
-enable_testing()
 add_subdirectory(test)
 
 # Installation (optional)

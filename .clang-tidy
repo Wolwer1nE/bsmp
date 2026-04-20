@@ -10,3 +10,4 @@ WarningsAsErrors: ''
 HeaderFilterRegex: "^${PROJECT_SOURCE_DIR}/.*"
 SystemHeaders: false
 FormatStyle: 'file'
+RemovedArgs: ['-G', '-lineinfo']

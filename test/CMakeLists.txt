@@ -17,7 +17,7 @@ foreach(SMOKE_TEST_SOURCE ${SMOKE_TEST_SOURCES})
 
     # remove example as it is not beautiful
     string(REGEX REPLACE "^example_" "" TEST_NAME "${FILE_BASENAME}")
-    bsmp_add_smoke_test("libbsmp.smoke.${TEST_NAME}" "${FILE_BASENAME}")
+    bsmp_add_smoke_test("integration.smoke.${TEST_NAME}" "${FILE_BASENAME}")
 
     add_dependencies(smoke_tests "${FILE_BASENAME}")
 endforeach()
