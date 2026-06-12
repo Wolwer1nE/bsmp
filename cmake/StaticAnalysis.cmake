@@ -1,6 +1,6 @@
 function(bsmp_target_enable_clang_tidy TARGET_NAME)
 
-   find_program(CLANG_TIDY clang-tidy)
+   find_program(CLANG_TIDY NAMES clang-tidy clang-tidy-22)
     if(NOT CLANG_TIDY)
         message(FATAL_ERROR "clang-tidy not found")
     endif()
@@ -24,7 +24,7 @@ function(bsmp_target_enable_clang_tidy TARGET_NAME)
         CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
 endfunction()
 
-function(BSMP_ENABLE_CLANG_TIDY_CUDA TARGET_NAME)
+function(bsmp_target_enable_clang_tidy_cuda TARGET_NAME)
     find_program(CLANG_TIDY clang-tidy)
     if(NOT CLANG_TIDY)
         message(FATAL_ERROR "clang-tidy not found")
@@ -51,7 +51,13 @@ function(BSMP_ENABLE_CLANG_TIDY_CUDA TARGET_NAME)
         --extra-arg=-Wno-unknown-warning-option
         --extra-arg=-Wno-invalid-command-line-argument
         --extra-arg=-w
-        -p)
+    )
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        # apparently on windows path to ninja compile_commands is somehow different...
+        set(CLANG_TIDY_COMMAND ${CLANG_TIDY_COMMAND} -p)
+    else()
+        set(CLANG_TIDY_COMMAND ${CLANG_TIDY_COMMAND} -p ${CMAKE_BINARY_DIR})
+    endif()
 
     set_target_properties(${TARGET_NAME} PROPERTIES
         CUDA_CLANG_TIDY "${CLANG_TIDY_COMMAND}"

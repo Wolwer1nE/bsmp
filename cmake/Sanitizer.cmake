@@ -2,14 +2,14 @@ function(bsmp_add_memcheck TARGET_NAME)
     find_program(COMPUTE_SANITIZER
         NAMES compute-sanitizer
         HINTS ${CUDAToolkit_BIN_DIR}
-        PATH_SUFFIXES bin)
+    )
      if(NOT COMPUTE_SANITIZER)
         message(FATAL_ERROR "compute-sanitizer not found")
     endif()
     # Only add for executables
     get_target_property(target_type ${TARGET_NAME} TYPE)
     if(NOT target_type STREQUAL "EXECUTABLE")
-        message(WARNING "bsmp_add_memcheck only works for executables, skipping ${TARGET_NAME}")
+        message(NOTICE "bsmp_add_memcheck only works for executables, skipping ${TARGET_NAME}")
         return()
     endif()
     

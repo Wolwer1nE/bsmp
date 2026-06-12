@@ -32,7 +32,7 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
             },
-            "generator": "Unix Makefiles"
+            "generator": "Ninja"
         },
         {
             "name": "windows-common",
@@ -85,6 +85,16 @@
             }
         },
         {
+            "name": "clang-22-debug",
+            "description": "Debug settings for Clang, target Linux",
+            "inherits": "clang-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CXX_COMPILER": "clang++-22"
+            },
+            "generator": "Ninja"
+        },
+        {
             "name": "clang-release",
             "description": "Release settings for Clang, target Linux",
             "inherits": "linux-common",
@@ -113,6 +123,10 @@
         }
     ],
     "buildPresets": [
+        {
+            "name": "clang-22-debug-build",
+            "configurePreset": "clang-22-debug"
+        },
         {
             "name": "msvc-debug-build",
             "configurePreset": "msvc",
