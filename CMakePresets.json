@@ -76,31 +76,21 @@
             "generator": "Ninja Multi-Config"
         },
         {
-            "name": "clang-debug",
+            "name": "clang-22-debug",
             "description": "Debug settings for Clang, target Linux",
             "inherits": "linux-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_CXX_COMPILER": "clang++"
+                "CMAKE_CXX_COMPILER": "clang++-22"
             }
         },
         {
-            "name": "clang-22-debug",
-            "description": "Debug settings for Clang, target Linux",
-            "inherits": "clang-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_CXX_COMPILER": "clang++-22"
-            },
-            "generator": "Ninja"
-        },
-        {
-            "name": "clang-release",
+            "name": "clang-22-release",
             "description": "Release settings for Clang, target Linux",
             "inherits": "linux-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_CXX_COMPILER": "clang++"
+                "CMAKE_CXX_COMPILER": "clang++-22"
             }
         },
         {
@@ -170,6 +160,11 @@
             "name": "test-msvc-release",
             "configurePreset": "msvc",
             "configuration": "Release"
+        },
+        {
+            "inherits": "test-common",
+            "name": "test-gcc-debug",
+            "configurePreset": "gcc-debug"
         }
     ]
 }
