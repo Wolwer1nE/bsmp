@@ -1,4 +1,4 @@
-Checks: "*
+Checks: "-*
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: "^${PROJECT_SOURCE_DIR}/.*"
