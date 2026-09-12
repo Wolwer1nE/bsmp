@@ -1,0 +1,4 @@
+numpy
+scipy
+petsc4py>=3.19
+slepc4py>=3.19

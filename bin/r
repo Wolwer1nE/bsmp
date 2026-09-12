@@ -12,6 +12,7 @@ Usage: bin/r <command> [options]
 Commands:
   mult
   solve
+  eigen
 
 Run 'bin/r <command> -h' for detailed help.
 EOF
@@ -39,6 +40,10 @@ if [[ -f "$SCRIPT_DIR/cmd/solve.sh" ]]; then
   # shellcheck source=/dev/null
   source "$SCRIPT_DIR/cmd/solve.sh"
 fi
+if [[ -f "$SCRIPT_DIR/cmd/eigen.sh" ]]; then
+  # shellcheck source=/dev/null
+  source "$SCRIPT_DIR/cmd/eigen.sh"
+fi
 
 main() {
   if [[ $# -lt 1 ]]; then
@@ -49,6 +54,7 @@ main() {
   case "$cmd" in
     mult) cmd_mult "$@" ;;
     solve) cmd_solve "$@" ;;
+    eigen) cmd_eigen "$@" ;;
     -h|--help|help) print_usage ;;
     *)
       echo "Unknown command: $cmd" >&2

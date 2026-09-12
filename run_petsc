@@ -1,0 +1,42 @@
+#!/bin/bash
+
+name=$1
+
+
+python3 vendor/petsc_mixed_eigen.py \
+   --stiffness data/martynova/${name}/${name}_O_phi_Ct.txt \
+   --mass data/martynova/${name}/${name}_O_phi_Mt.txt \
+   --coords data/martynova/${name}/${name}_O_phi_nodes.txt \
+   --input-ordering node-based \
+   --ordering node-based \
+   --num-eigs 6 \
+   --grounded-dof 0
+
+
+
+   python3 vendor/petsc_mixed_eigen.py \
+   --stiffness data/martynova/${name}/${name}_Ob_phi_Ct.txt \
+   --mass data/martynova/${name}/${name}_Ob_phi_Mt.txt \
+   --coords data/martynova/${name}/${name}_Ob_phi_nodes.txt \
+   --input-ordering block-wise \
+   --ordering block-wise \
+   --num-eigs 6 \
+   --grounded-dof 0
+
+   python3 vendor/petsc_mixed_eigen.py \
+   --stiffness data/martynova/${name}/${name}_Or_phi_Ct.txt \
+   --mass data/martynova/${name}/${name}_Or_phi_Mt.txt \
+   --coords data/martynova/${name}/${name}_Or_phi_nodes.txt \
+   --input-ordering node-based \
+   --ordering node-based \
+   --num-eigs 6 \
+   --grounded-dof 0
+
+python3 vendor/petsc_mixed_eigen.py \
+   --stiffness data/martynova/${name}/${name}_Orb_phi_Ct.txt \
+   --mass data/martynova/${name}/${name}_Orb_phi_Mt.txt \
+   --coords data/martynova/${name}/${name}_Orb_phi_nodes.txt \
+   --input-ordering block-wise \
+   --ordering block-wise \
+   --num-eigs 6 \
+   --grounded-dof 0

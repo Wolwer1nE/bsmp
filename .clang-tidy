@@ -1,0 +1,24 @@
+Checks: "-*
+"
+WarningsAsErrors: ''
+HeaderFilterRegex: "^${PROJECT_SOURCE_DIR}/.*"
+SystemHeaders: false
+FormatStyle: 'file'
+
+RemovedArgs: [
+  "--generate-code=arch=compute_100,code=[compute_100,sm_100]",
+  "--generate-code=arch=compute_75,code=[compute_75,sm_75]",
+  "--generate-code=arch=compute_80,code=[compute_80,sm_80]",
+  "--generate-code=arch=compute_86,code=[compute_86,sm_86]",
+  "--generate-code=arch=compute_89,code=[compute_89,sm_89]",
+  "--generate-code=arch=compute_90,code=[compute_90,sm_90]",
+  "-Xcompiler=-fPIC",
+  "-Xcompiler=-fPIE",
+  "-Xcompiler=/W4",
+  "-Xcompiler=/permissive-",
+  "-Xcompiler=-O2 -Ob2",
+  "-Xcompiler=-MDd",
+  "-Xcompiler=-MD",
+  "-forward-unknown-to-host-compiler",
+  "-rdc=true"
+]
