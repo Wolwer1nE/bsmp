@@ -1,0 +1,170 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 18,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "common",
+            "description": "Common settings for all configurations",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_C_STANDARD": "99",
+                "CMAKE_CXX_STANDARD": "14",
+                "CMAKE_CUDA_STANDARD": "14",
+                "CMAKE_C_STANDARD_REQUIRED": "ON",
+                "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+                "CMAKE_CUDA_STANDARD_REQUIRED": "ON",
+                "CMAKE_CUDA_ARCHITECTURES": "75;80;86;89;90;100",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "linux-common",
+            "description": "Common settings for gcc and clang on Linux",
+            "hidden": true,
+            "inherits": "common",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "generator": "Ninja"
+        },
+        {
+            "name": "windows-common",
+            "description": "Common settings for Visual Studio on Windows",
+            "hidden": true,
+            "inherits": "common",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "toolset": {
+                "value": "host=x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "enableClangTidyCodeAnalysis": true,
+                    "enableMicrosoftCodeAnalysis": false,
+                    "intelliSenseMode": "windows-msvc-x64"
+                }
+            }
+        },
+        {
+            "name": "msvc",
+            "description": "Multi-config settings for Visual Studio on Windows",
+            "inherits": "windows-common",
+            "generator": "Visual Studio 18 2026"
+        },
+        {
+            "name": "ninja-windows",
+            "description": "Multi-config settings for Ninja Multiconfig on Windows",
+            "inherits": "windows-common",
+            "generator": "Ninja Multi-Config"
+        },
+        {
+            "name": "clang-22-debug",
+            "description": "Debug settings for Clang, target Linux",
+            "inherits": "linux-common",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CXX_COMPILER": "clang++-22"
+            }
+        },
+        {
+            "name": "clang-22-release",
+            "description": "Release settings for Clang, target Linux",
+            "inherits": "linux-common",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_COMPILER": "clang++-22"
+            }
+        },
+        {
+            "name": "gcc-debug",
+            "description": "Debug settings for GCC, target Linux",
+            "inherits": "linux-common",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        },
+        {
+            "name": "gcc-release",
+            "description": "Release settings for GCC, target Linux",
+            "inherits": "linux-common",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "clang-22-debug-build",
+            "configurePreset": "clang-22-debug"
+        },
+        {
+            "name": "msvc-debug-build",
+            "configurePreset": "msvc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "msvc-release-build",
+            "configurePreset": "msvc",
+            "configuration": "Release"
+        },
+        {
+            "name": "ninja-windows-debug-build",
+            "configurePreset": "ninja-windows",
+            "configuration": "Debug"
+        },
+        {
+            "name": "ninja-windows-release-build",
+            "configurePreset": "ninja-windows",
+            "configuration": "Release"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "test-common",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error"
+            }
+        },
+        {
+            "inherits": "test-common",
+            "name": "test-msvc-debug",
+            "configurePreset": "msvc",
+            "configuration": "Debug"
+        },
+        {
+            "inherits": "test-common",
+            "name": "test-msvc-release",
+            "configurePreset": "msvc",
+            "configuration": "Release"
+        },
+        {
+            "inherits": "test-common",
+            "name": "test-gcc-debug",
+            "configurePreset": "gcc-debug"
+        }
+    ]
+}
