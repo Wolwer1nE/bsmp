@@ -10,15 +10,14 @@ readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "Vladislav Krylov", email = "vvkrylov1@gmail.com" }]
 dependencies = [
-    "pandas",
-    "numpy",
-    "matplotlib"
+    "click"
 ]
 
 [project.optional-dependencies]
 dev = ["pytest"] # Right now no need for this 
 
 [project.scripts]
+bsmp = "bsmp.cli:cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]
