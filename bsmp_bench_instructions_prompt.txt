@@ -1,0 +1,49 @@
+You are a senior scientific-computing Python engineer. Produce a complete set of
+step-by-step instructions for creating a Python package that tracks performance
+and visualizes results of the CUDA experiments in the repository described below.
+
+## Context (verified facts — treat as ground truth; do not invent files or paths)
+- Repo: D:\00-Home\Work\Projects\bsmp — CUDA/C++ block-sparse matrix package
+  (BSMP, block size 3, CMake Release build). You cannot read this repo.
+- `bin/r solve ...` prints exactly these labeled metric lines:
+  "Converged:", "Iterations:", "Final relative residual:", "Solve time (ms):".
+- Experiment space: methods bicgstab and gmres (restart 30); preconditioners
+  amg, scalar-jacobi, block-jacobi, none. Example invocation:
+  bin/r solve -m bicgstab --matrix <m> --rhs <b> --precond amg --max-iters 1000 --tol 1e-6 --output <x.txt>
+- Existing bash harnesses that parse those labels (sed): bin/compare_all.sh,
+  bin/compare_solvers.sh, bin/compare_preconditioners.sh — the data pipeline must
+  integrate with these, not replace them.
+- Eigenvalue experiments: run_gevp drives `bin/r eigen` (6 modes, orderings
+  block-wise/node-based, scaling diag); reference results come from
+  vendor/petsc_mixed_eigen.py and vendor/petsc_solve.py.
+- Sample data: data/bsmp1.txt + data/bsmp1_rhs.txt; larger FEM sets under
+  data/martynova/<name>/ (stiffness/mass/coords triplet files).
+- Existing minimal viz: tools/sparse_spy.py (matplotlib spy of triplet files).
+- Environment: Windows dev machine; bash scripts run under WSL/Git Bash; Python 3.
+
+## Goal
+Design the package (suggested name: bsmp_bench; justify if you propose better)
+with three capabilities: (1) collect experiment runs into a versioned, queryable
+dataset; (2) compute summary statistics; (3) produce publication-ready figures.
+
+## Constraints
+- Inputs are the labeled plain-text logs from bin/r / bin/r eigen / the PETSc
+  scripts, plus triplet matrix files. Do NOT wrap NVML, nsight, or CUDA APIs.
+- Dependencies: numpy, pandas, matplotlib only.
+- All new files live under a new top-level python/ directory. Do not modify
+  src/, bin/, vendor/, generators/, docs, or build/.
+- Required charts: residual-vs-iteration convergence curves per method x
+  preconditioner; grouped bar of solve time; iteration-count and final-residual
+  comparisons; CUDA-vs-PETSc eigen spectrum overlay; matrix spy.
+- CLI contract to define exactly: three subcommands `record`, `report`, `plot`
+  with precise flags for each.
+- Every instruction must be executable by a human: name real files and give a
+  verifiable command.
+
+## Output contract
+Numbered steps (14-20), each with (a) what to create or change (exact paths
+under python/) and (b) a one-line "Done when:" check that can be run in this
+repo. End with an end-to-end smoke run against data/bsmp1.txt +
+data/bsmp1_rhs.txt whose output is deterministic. State the storage schema
+(CSV/JSONL/Parquet) and the API surface as concrete signatures — do NOT emit
+full code listings. One sentence of rationale where a choice matters; no essays.
