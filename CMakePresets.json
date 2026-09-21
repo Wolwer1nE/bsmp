@@ -18,8 +18,15 @@
                 "CMAKE_C_STANDARD_REQUIRED": "ON",
                 "CMAKE_CXX_STANDARD_REQUIRED": "ON",
                 "CMAKE_CUDA_STANDARD_REQUIRED": "ON",
-                "CMAKE_CUDA_ARCHITECTURES": "75;80;86;89;90;100",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+                "CMAKE_CUDA_ARCHITECTURES": "75;80;86;89;90;100;130",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+
+                // I have no idea what these things do
+                // but smart people on the Internet say to add it
+                "STATIC_ANALYSIS_ENABLED": "ON",
+                "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
+                "CMAKE_CUDA_SEPARABLE_COMPILATION": "ON",
+                "CUDA_RESOLVE_DEVICE_SYMBOLS": "ON"
             }
         },
         {
@@ -67,7 +74,7 @@
             "name": "msvc",
             "description": "Multi-config settings for Visual Studio on Windows",
             "inherits": "windows-common",
-            "generator": "Visual Studio 18 2026"
+            "generator": "Visual Studio 17 2022"
         },
         {
             "name": "ninja-windows",

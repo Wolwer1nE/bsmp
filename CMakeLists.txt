@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.18)
 
 project(bsmp LANGUAGES CXX CUDA)
 
+option(BSMP_ENABLE_COMPUTE_SANITIZER "Enables analysis with compute-sanitizer" ON)
+option(BSMP_ENABLE_CLANG_TIDY "Enables static analysis with clang-tidy" ON)
+
 include(CTest)
 enable_testing()
 
