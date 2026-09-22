@@ -2,10 +2,11 @@
 from os.path import dirname, basename, exists, join
 import random
 
+
 # Generate a block-diagonal matrix and write it to file
-def generate_matrix(output_filename: str,
-        n_blocks:int, block_size:int,
-        use_random:bool) -> None:
+def generate_matrix(
+    output_filename: str, n_blocks: int, block_size: int, use_random: bool
+) -> None:
     if n_blocks <= 0:
         raise ValueError(f"n_blocks must be positive, got {n_blocks}")
     if block_size <= 0:
@@ -19,7 +20,7 @@ def generate_matrix(output_filename: str,
     with open(output_filename, "w") as f:
         for i in range(n_blocks):
             block_start = i * block_size
-            value =  random.random() if use_random else i + 1
+            value = random.random() if use_random else i + 1
             for j in range(block_size):
                 for k in range(block_size):
                     row = block_start + j

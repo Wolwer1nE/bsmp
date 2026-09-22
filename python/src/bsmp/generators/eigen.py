@@ -2,9 +2,11 @@
 from os.path import dirname, exists, join, basename
 import random
 
+
 # Generate a symmetric sparse matrix as a list of [row, col, value] triplets
-def generate_symmetric_sparse_matrix(n: int,
-        density: float, scale_factor: float = 1.0) -> list[list]:
+def generate_symmetric_sparse_matrix(
+    n: int, density: float, scale_factor: float = 1.0
+) -> list[list]:
     triplets = []
 
     for i in range(n):
@@ -38,26 +40,38 @@ def generate_symmetric_sparse_matrix(n: int,
     result.sort(key=lambda t: (t[0], t[1]))
     return result
 
+
 # Write triplets to a file, one "row col value" per line
 def save_triplets(filename: str, triplets: list[list]) -> None:
     with open(filename, "w") as f:
         for i, j, v in triplets:
             f.write(f"{i} {j} {v}\n")
 
+
 # Generate the A and B matrices of a generalized eigenvalue problem
-def generate_eigen_matrices(output_filename_A: str,
-        output_filename_B: str,
-        n: int, density_A: float, density_B: float) -> None:
+def generate_eigen_matrices(
+    output_filename_A: str,
+    output_filename_B: str,
+    n: int,
+    density_A: float,
+    density_B: float,
+) -> None:
     if n <= 0:
         raise ValueError(f"n must be positive, got {n}")
     if density_A <= 0 or density_B <= 0:
-        raise ValueError(f"densities must be positive, got {density_A}, {density_B}")
+        raise ValueError(
+            f"densities must be positive, got {density_A}, {density_B}"
+        )
     if not output_filename_A or not output_filename_B:
         raise ValueError("output filename is empty")
     if not exists(dirname(output_filename_A)):
-        raise ValueError(f"output directory does not exist: {dirname(output_filename_A)}")
+        raise ValueError(
+            f"output directory does not exist: {dirname(output_filename_A)}"
+        )
     if not exists(dirname(output_filename_B)):
-        raise ValueError(f"output directory does not exist: {dirname(output_filename_B)}")
+        raise ValueError(
+            f"output directory does not exist: {dirname(output_filename_B)}"
+        )
 
     triplets_A = generate_symmetric_sparse_matrix(n, density_A, 1.0)
     triplets_B = generate_symmetric_sparse_matrix(n, density_B, 0.5)

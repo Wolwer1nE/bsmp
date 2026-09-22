@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Launcher for the BSMP eigen example (mirrors bin/cmd/eigen.sh)."""
+
 from os.path import isfile
 import subprocess
 from bsmp.config import CONFIG
@@ -7,12 +8,26 @@ from bsmp.launchers._build import clean_build, is_windows
 
 # Options that take a value and are passed straight through to the executable.
 _VALUE_OPTIONS = (
-    "--stiffness", "--cu", "--cuphi", "--cphi", "--mass", "--coords",
-    "--ordering", "--dielectric-sign", "--scaling", "--eigensolve-path",
-    "--grounded-dof", "--modes", "--tol", "--max-iters",
-    "--sa-amg-regularization-epsilon", "--sa-amg-pre-sweeps",
-    "--sa-amg-post-sweeps", "--sa-amg-jacobi-damping",
-    "--sa-amg-prolongation-damping", "--sa-amg-use-chebyshev",
+    "--stiffness",
+    "--cu",
+    "--cuphi",
+    "--cphi",
+    "--mass",
+    "--coords",
+    "--ordering",
+    "--dielectric-sign",
+    "--scaling",
+    "--eigensolve-path",
+    "--grounded-dof",
+    "--modes",
+    "--tol",
+    "--max-iters",
+    "--sa-amg-regularization-epsilon",
+    "--sa-amg-pre-sweeps",
+    "--sa-amg-post-sweeps",
+    "--sa-amg-jacobi-damping",
+    "--sa-amg-prolongation-damping",
+    "--sa-amg-use-chebyshev",
 )
 # Options that take no value and are passed straight through.
 _FLAG_OPTIONS = ("--synthetic", "--verbose")
@@ -49,10 +64,15 @@ def run_eigen(no_build: bool = False, **kwargs) -> None:
     if full_mode and legacy_mode:
         raise ValueError(
             "use either full-matrix mode (--stiffness --mass --coords) or "
-            "legacy block mode (--cu --cuphi --cphi --mass --coords), not both")
+            "legacy block mode (--cu --cuphi --cphi --mass --coords), not both"
+        )
 
     if full_mode:
-        required = {"--stiffness": stiffness, "--mass": mass, "--coords": coords}
+        required = {
+            "--stiffness": stiffness,
+            "--mass": mass,
+            "--coords": coords,
+        }
         for opt, path in required.items():
             if not path:
                 raise ValueError(f"full-matrix eigen mode requires {opt}")
@@ -60,8 +80,13 @@ def run_eigen(no_build: bool = False, **kwargs) -> None:
             if not isfile(path):
                 raise ValueError(f"required file '{path}' not found")
     elif legacy_mode:
-        required = {"--cu": cu, "--cuphi": cuphi, "--cphi": cphi,
-                    "--mass": mass, "--coords": coords}
+        required = {
+            "--cu": cu,
+            "--cuphi": cuphi,
+            "--cphi": cphi,
+            "--mass": mass,
+            "--coords": coords,
+        }
         for opt, path in required.items():
             if not path:
                 raise ValueError(f"legacy block eigen mode requires {opt}")
@@ -75,7 +100,10 @@ def run_eigen(no_build: bool = False, **kwargs) -> None:
     # TODO: un-hardcode the preset name for Windows
     exe = ""
     if is_windows():
-        exe = CONFIG.build_dir / "msvc-ideapad\\examples\\Release\\example_sa_amg_pcg_eigen.exe"
+        exe = (
+            CONFIG.build_dir
+            / "msvc-ideapad\\examples\\Release\\example_sa_amg_pcg_eigen.exe"
+        )
     else:
         exe = CONFIG.build_dir / "example_sa_amg_pcg_eigen"
     if not isfile(exe):

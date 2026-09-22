@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 """Launcher for the BSMP multiplication test (mirrors bin/cmd/mult.sh)."""
+
 from os.path import isfile
 import subprocess
 from bsmp.config import CONFIG
 from bsmp.launchers._build import is_linux, is_windows, clean_build
 
 
-def run_mult(matrix_file: str,
-             rhs_file: str,
-             format: str,
-             mults: int,
-             output: str,
-             verbose: bool,
-             no_build: bool) -> None:
+def run_mult(
+    matrix_file: str,
+    rhs_file: str,
+    format: str,
+    mults: int,
+    output: str,
+    verbose: bool,
+    no_build: bool,
+) -> None:
     """Run the multiplication test on the given matrix and RHS vector."""
     if not matrix_file:
         raise ValueError("mult requires <matrix_file>")

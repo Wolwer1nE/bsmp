@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Launcher for the BSMP solver (mirrors bin/cmd/solve.sh)."""
+
 from os.path import isfile
 from pathlib import Path
 import re
@@ -43,27 +44,31 @@ def _strip_mm_vector_header(rhs_file: str) -> str:
             cleaned_lines.append(line)
 
     tmp = tempfile.NamedTemporaryFile(
-        mode="w", suffix=".rhs", delete=False, newline="\n")
+        mode="w", suffix=".rhs", delete=False, newline="\n"
+    )
     with tmp:
         tmp.writelines(cleaned_lines)
     return tmp.name
 
 
-def run_solve(method: str,
-              matrix_file: str,
-              rhs_file: str,
-              precond: str = "",
-              output_file: str = "",
-              max_iters: str = "",
-              tol: str = "",
-              restart: str = "",
-              no_build: bool = False) -> None:
+def run_solve(
+    method: str,
+    matrix_file: str,
+    rhs_file: str,
+    precond: str = "",
+    output_file: str = "",
+    max_iters: str = "",
+    tol: str = "",
+    restart: str = "",
+    no_build: bool = False,
+) -> None:
     """Solve Ax=b using the selected method on the given matrix and RHS."""
     if not method:
         raise ValueError("--method is required")
     if method not in SUPPORTED_METHODS:
         raise ValueError(
-            f"unsupported method '{method}'. Supported methods: {', '.join(SUPPORTED_METHODS)}")
+            f"unsupported method '{method}'. Supported methods: {', '.join(SUPPORTED_METHODS)}"
+        )
     if not matrix_file or not rhs_file:
         raise ValueError("--matrix and --rhs are required")
     if not isfile(matrix_file):
@@ -78,10 +83,13 @@ def run_solve(method: str,
     exe_filename = "example_gmres" if method == "gmres" else "example_bicgstab"
     exe = ""
     if is_windows():
-        exe = CONFIG.build_dir / ("msvc-ideapad\\examples\\Release\\" + 
-                                  exe_filename + ".exe")
+        exe = CONFIG.build_dir / (
+            "msvc-ideapad\\examples\\Release\\" + exe_filename + ".exe"
+        )
     else:
-        exe = CONFIG.build_dir / ("example_gmres" if method == "gmres" else "example_bicgstab")
+        exe = CONFIG.build_dir / (
+            "example_gmres" if method == "gmres" else "example_bicgstab"
+        )
 
     if not isfile(exe):
         raise ValueError(f"executable '{exe}' not found")
