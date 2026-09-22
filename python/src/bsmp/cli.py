@@ -4,6 +4,7 @@ import subprocess
 from bsmp.generators.matrix import generate_matrix
 from bsmp.generators.eigen import generate_eigen_matrices
 from bsmp.launchers.mult import run_mult
+from bsmp.launchers.solve import run_solve
 
 
 @click.group()
@@ -80,7 +81,33 @@ def mult_launcher(matrix_file, rhs, format, mults, output, verbose, no_build):
         print(f"Unexpected error: {e}")
         raise SystemExit(1)
 
+
+@click.command()
+@click.option("-m", "--method", help="Solver method (required)")
+@click.option("--precond", default="", help="Preconditioner: amg, scalar-jacobi, block-jacobi, none")
+@click.option("--matrix", help="Input matrix in triplet format (required)")
+@click.option("--rhs", help="RHS vector path (required)")
+@click.option("--output", help="Save solution vector to path")
+@click.option("--max-iters", help="Maximum number of iterations")
+@click.option("--tol", help="Relative residual tolerance")
+@click.option("--restart", help="Restart parameter for GMRES")
+@click.option("--no-build", is_flag=True, default=False, help="Use existing build if present")
+def solve_launcher(method, precond, matrix, rhs, output, max_iters, tol, restart, no_build):
+    """Solve a system Ax=b using the selected method"""
+    try:
+        run_solve(method, matrix, rhs, precond, output, max_iters, tol, restart, no_build)
+    except ValueError as e:
+        print(f"Invalid inputs error: {e}")
+        raise SystemExit(1)
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        raise SystemExit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise SystemExit(1)
+
 launch.add_command(mult_launcher, "mult")
+launch.add_command(solve_launcher, "solve")
 
 
 
