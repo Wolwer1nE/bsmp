@@ -1,1 +1,1 @@
-__version__ = "0.1.0"
+"""Matrix and eigen-problem generators for the BSMP project."""
