@@ -3,19 +3,7 @@
 from os.path import isfile
 import subprocess
 from bsmp.config import CONFIG
-from bsmp.launchers._build import is_linux, is_windows
-
-def _clean_build() -> None:
-    """Configure and build the project with CMake (Release)."""
-    subprocess.run(
-        ["cmake", "-S", str(CONFIG.root_dir), "-B", str(CONFIG.build_dir),
-         "-DCMAKE_BUILD_TYPE=Release"], # FIXME: doesn't work as expected with multi-config generators
-        check=True,
-    )
-    subprocess.run(
-        ["cmake", "--build", str(CONFIG.build_dir), "--clean-first", "-j"],
-        check=True,
-    )
+from bsmp.launchers._build import is_linux, is_windows, clean_build
 
 
 def run_mult(matrix_file: str,
@@ -36,7 +24,7 @@ def run_mult(matrix_file: str,
         raise ValueError(f"rhs file '{rhs_file}' not found")
 
     if not no_build:
-        _clean_build()
+        clean_build()
 
     # TODO: un-hardcode the preset name for Windows
     exe = ""
