@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from os.path import dirname, basename, exists, join
 import random
+from os.path import basename, dirname, exists, join
 
 
 # Generate a block-diagonal matrix and write it to file

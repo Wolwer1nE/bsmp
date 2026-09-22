@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from os.path import dirname, exists, join, basename
 import random
+from os.path import dirname, exists
 
 
 # Generate a symmetric sparse matrix as a list of [row, col, value] triplets

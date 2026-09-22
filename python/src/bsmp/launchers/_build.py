@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """Tools for building project with CMake on any platform."""
 
-import sys
 import subprocess
+import sys
+
 from bsmp.config import CONFIG
 
 

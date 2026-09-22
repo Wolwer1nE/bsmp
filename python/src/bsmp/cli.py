@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-import click
 import subprocess
-from bsmp.generators.matrix import generate_matrix
+
+import click
+
 from bsmp.generators.eigen import generate_eigen_matrices
+from bsmp.generators.matrix import generate_matrix
+from bsmp.launchers.eigen import run_eigen
 from bsmp.launchers.mult import run_mult
 from bsmp.launchers.solve import run_solve
-from bsmp.launchers.eigen import run_eigen
 
 
 @click.group()
@@ -30,7 +32,7 @@ def matrix_generator(output_file, n_blocks, block_size, random):
         generate_matrix(output_file, n_blocks, block_size, random)
     except ValueError as e:
         print(f"Invalid inputs error: {e}")
-    except IOError as e:
+    except OSError as e:
         print(f"IO Error: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
@@ -52,7 +54,7 @@ def eigenvalue_generator(
         )
     except ValueError as e:
         print(f"Invalid inputs error: {e}")
-    except IOError as e:
+    except OSError as e:
         print(f"IO Error: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
@@ -90,13 +92,13 @@ def mult_launcher(matrix_file, rhs, format, mults, output, verbose, no_build):
         run_mult(matrix_file, rhs, format, mults, output, verbose, no_build)
     except ValueError as e:
         print(f"Invalid inputs error: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
     except subprocess.CalledProcessError as e:
         print(f"Command failed: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
     except Exception as e:
         print(f"Unexpected error: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @click.command()
@@ -136,13 +138,13 @@ def solve_launcher(
         )
     except ValueError as e:
         print(f"Invalid inputs error: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
     except subprocess.CalledProcessError as e:
         print(f"Command failed: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
     except Exception as e:
         print(f"Unexpected error: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @click.command()
@@ -250,13 +252,13 @@ def eigen_launcher(
         )
     except ValueError as e:
         print(f"Invalid inputs error: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
     except subprocess.CalledProcessError as e:
         print(f"Command failed: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
     except Exception as e:
         print(f"Unexpected error: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 launch.add_command(mult_launcher, "mult")

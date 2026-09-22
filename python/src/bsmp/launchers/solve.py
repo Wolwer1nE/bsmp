@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 """Launcher for the BSMP solver (mirrors bin/cmd/solve.sh)."""
 
-from os.path import isfile
-from pathlib import Path
 import re
 import subprocess
 import tempfile
+from os.path import isfile
+from pathlib import Path
+
 from bsmp.config import CONFIG
 from bsmp.launchers._build import clean_build, is_windows
 
@@ -25,14 +26,14 @@ def _strip_mm_vector_header(rhs_file: str) -> str:
     Mirrors the awk preprocessing in bin/cmd/solve.sh. If the file is not a
     Matrix Market vector, the original path is returned unchanged.
     """
-    with open(rhs_file, "r") as f:
+    with open(rhs_file) as f:
         first_line = f.readline()
     if not _MM_HEADER_RE.search(first_line):
         return rhs_file
 
     cleaned_lines = []
     first_noncomment = True
-    with open(rhs_file, "r") as f:
+    with open(rhs_file) as f:
         for line in f:
             if first_noncomment:
                 if _COMMENT_LINE_RE.match(line):
@@ -43,10 +44,9 @@ def _strip_mm_vector_header(rhs_file: str) -> str:
                 first_noncomment = False
             cleaned_lines.append(line)
 
-    tmp = tempfile.NamedTemporaryFile(
+    with tempfile.NamedTemporaryFile(
         mode="w", suffix=".rhs", delete=False, newline="\n"
-    )
-    with tmp:
+    ) as tmp:
         tmp.writelines(cleaned_lines)
     return tmp.name
 
@@ -67,7 +67,8 @@ def run_solve(
         raise ValueError("--method is required")
     if method not in SUPPORTED_METHODS:
         raise ValueError(
-            f"unsupported method '{method}'. Supported methods: {', '.join(SUPPORTED_METHODS)}"
+            f"unsupported method '{method}'."
+            + "Supported methods: {', '.join(SUPPORTED_METHODS)}"
         )
     if not matrix_file or not rhs_file:
         raise ValueError("--matrix and --rhs are required")
@@ -154,7 +155,7 @@ def run_solve(
         args.append(precond)
 
     try:
-        subprocess.run([str(exe)] + args, check=True)
+        subprocess.run([str(exe), *args], check=True)
     finally:
         # Clean up the temporary RHS if one was created.
         if rhs_to_use != rhs_file:

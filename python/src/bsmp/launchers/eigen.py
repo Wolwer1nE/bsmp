@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """Launcher for the BSMP eigen example (mirrors bin/cmd/eigen.sh)."""
 
-from os.path import isfile
 import subprocess
+from os.path import isfile
+
 from bsmp.config import CONFIG
 from bsmp.launchers._build import clean_build, is_windows
 
@@ -76,7 +77,7 @@ def run_eigen(no_build: bool = False, **kwargs) -> None:
         for opt, path in required.items():
             if not path:
                 raise ValueError(f"full-matrix eigen mode requires {opt}")
-        for opt, path in required.items():
+        for _opt, path in required.items():
             if not isfile(path):
                 raise ValueError(f"required file '{path}' not found")
     elif legacy_mode:
@@ -90,7 +91,7 @@ def run_eigen(no_build: bool = False, **kwargs) -> None:
         for opt, path in required.items():
             if not path:
                 raise ValueError(f"legacy block eigen mode requires {opt}")
-        for opt, path in required.items():
+        for _opt, path in required.items():
             if not isfile(str(path)):
                 raise ValueError(f"required file '{path}' not found")
 
@@ -115,4 +116,4 @@ def run_eigen(no_build: bool = False, **kwargs) -> None:
         if value is not None:
             args.append(value)
 
-    subprocess.run([str(exe)] + args, check=True)
+    subprocess.run([str(exe), *args], check=True)

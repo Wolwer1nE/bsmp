@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """Launcher for the BSMP multiplication test (mirrors bin/cmd/mult.sh)."""
 
-from os.path import isfile
 import subprocess
+from os.path import isfile
+
 from bsmp.config import CONFIG
-from bsmp.launchers._build import is_linux, is_windows, clean_build
+from bsmp.launchers._build import clean_build, is_windows
 
 
 def run_mult(
@@ -46,4 +47,4 @@ def run_mult(
     if verbose:
         args += ["--verbose"]
 
-    subprocess.run([str(exe)] + args, check=True)
+    subprocess.run([str(exe), *args], check=True)

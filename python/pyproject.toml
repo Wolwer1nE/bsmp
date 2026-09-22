@@ -25,16 +25,15 @@ bsmp = "bsmp.cli:cli"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.black]
-line-length = 80
-target-version = ['py312']
-
 [tool.ruff]
-line-length = 80
+line-length = 88
 target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = [
+    "N803", "N806" # uppercase variables
+]
 
 [tool.ruff.format]
 quote-style = "double"
