@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import click
+import subprocess
 from bsmp.generators.matrix import generate_matrix
 from bsmp.generators.eigen import generate_eigen_matrices
+from bsmp.launchers.mult import run_mult
 
 
 @click.group()
@@ -9,10 +11,10 @@ from bsmp.generators.eigen import generate_eigen_matrices
 def cli() -> None:
     """BSMP command-line tools"""
 
+
 @cli.group()
 def generate() -> None:
     """Generate matrices and eigenvalue sets"""
-
 
 
 @click.command()
@@ -50,6 +52,36 @@ def eigenvalue_generator(output_file_a, output_file_b, size, density_a, density_
 
 generate.add_command(matrix_generator, "matrix")
 generate.add_command(eigenvalue_generator, "eigenvalue")
+
+@cli.group()
+def launch() -> None:
+    """Launches some default usecases of BSMP"""
+
+
+@click.command()
+@click.argument("matrix_file")
+@click.option("--rhs", help="RHS vector path", required=True)
+@click.option("--format", default="triplets", help="Input format: triplets|matrix-market")
+@click.option("--mults", default=10, help="Number of chained multiplies")
+@click.option("--output", help="Save resulting vector to path")
+@click.option("--verbose", is_flag=True, default=False, help="Verbose kernel statistics")
+@click.option("--no-build", is_flag=True, default=False, help="Use existing build if present")
+def mult_launcher(matrix_file, rhs, format, mults, output, verbose, no_build):
+    """Run the multiplication test on a matrix and RHS vector"""
+    try:
+        run_mult(matrix_file, rhs, format, mults, output, verbose, no_build)
+    except ValueError as e:
+        print(f"Invalid inputs error: {e}")
+        raise SystemExit(1)
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        raise SystemExit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise SystemExit(1)
+
+launch.add_command(mult_launcher, "mult")
+
 
 
 if __name__ == "__main__":
