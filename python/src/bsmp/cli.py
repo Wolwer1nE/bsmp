@@ -5,6 +5,7 @@ from bsmp.generators.matrix import generate_matrix
 from bsmp.generators.eigen import generate_eigen_matrices
 from bsmp.launchers.mult import run_mult
 from bsmp.launchers.solve import run_solve
+from bsmp.launchers.eigen import run_eigen
 
 
 @click.group()
@@ -106,9 +107,62 @@ def solve_launcher(method, precond, matrix, rhs, output, max_iters, tol, restart
         print(f"Unexpected error: {e}")
         raise SystemExit(1)
 
+@click.command()
+@click.option("--synthetic", is_flag=True, default=False, help="Force synthetic demo mode")
+@click.option("--stiffness", help="Full mixed stiffness matrix C")
+@click.option("--cu", help="Mechanical stiffness block C_u")
+@click.option("--cuphi", help="Coupling block C_uphi")
+@click.option("--cphi", help="Dielectric block C_phi")
+@click.option("--mass", help="Full mixed mass matrix M (or mechanical M in legacy block mode)")
+@click.option("--coords", help="Node coordinates file (x y z per line)")
+@click.option("--ordering", help="Input ordering label: node-based or block-wise")
+@click.option("--dielectric-sign", help="Phi-Phi interpretation in full C: negated or as-is")
+@click.option("--scaling", help="Preprocessing mode: none, field, or diag")
+@click.option("--eigensolve-path", help="auto, sa-amg, unpreconditioned, or explicit-schur-cusolver")
+@click.option("--grounded-dof", help="Electrical DOF to ground (default: 0)")
+@click.option("--modes", help="Number of eigenpairs to compute (default: 3)")
+@click.option("--tol", help="Deflated PCG tolerance (default: 1e-3)")
+@click.option("--max-iters", help="Deflated PCG iteration limit (default: 400)")
+@click.option("--sa-amg-regularization-epsilon", help="SA-AMG regularization epsilon")
+@click.option("--sa-amg-pre-sweeps", help="SA-AMG pre-smoothing sweeps")
+@click.option("--sa-amg-post-sweeps", help="SA-AMG post-smoothing sweeps")
+@click.option("--sa-amg-jacobi-damping", help="SA-AMG Jacobi damping")
+@click.option("--sa-amg-prolongation-damping", help="SA-AMG prolongation damping")
+@click.option("--sa-amg-use-chebyshev", help="SA-AMG Chebyshev smoothing (0|1)")
+@click.option("--verbose", is_flag=True, default=False, help="Print per-iteration eigensolver diagnostics")
+@click.option("--no-build", is_flag=True, default=False, help="Use existing build if present")
+def eigen_launcher(synthetic, stiffness, cu, cuphi, cphi, mass, coords, ordering,
+                   dielectric_sign, scaling, eigensolve_path, grounded_dof, modes,
+                   tol, max_iters, sa_amg_regularization_epsilon, sa_amg_pre_sweeps,
+                   sa_amg_post_sweeps, sa_amg_jacobi_damping,
+                   sa_amg_prolongation_damping, sa_amg_use_chebyshev,
+                   verbose, no_build):
+    """Run the SA-AMG + deflated PCG eigen example"""
+    try:
+        run_eigen(no_build=no_build, synthetic=synthetic, stiffness=stiffness,
+                  cu=cu, cuphi=cuphi, cphi=cphi, mass=mass, coords=coords,
+                  ordering=ordering, dielectric_sign=dielectric_sign, scaling=scaling,
+                  eigensolve_path=eigensolve_path, grounded_dof=grounded_dof,
+                  modes=modes, tol=tol, max_iters=max_iters,
+                  sa_amg_regularization_epsilon=sa_amg_regularization_epsilon,
+                  sa_amg_pre_sweeps=sa_amg_pre_sweeps,
+                  sa_amg_post_sweeps=sa_amg_post_sweeps,
+                  sa_amg_jacobi_damping=sa_amg_jacobi_damping,
+                  sa_amg_prolongation_damping=sa_amg_prolongation_damping,
+                  sa_amg_use_chebyshev=sa_amg_use_chebyshev, verbose=verbose)
+    except ValueError as e:
+        print(f"Invalid inputs error: {e}")
+        raise SystemExit(1)
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        raise SystemExit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise SystemExit(1)
+
 launch.add_command(mult_launcher, "mult")
 launch.add_command(solve_launcher, "solve")
-
+launch.add_command(eigen_launcher, "eigen")
 
 
 if __name__ == "__main__":
