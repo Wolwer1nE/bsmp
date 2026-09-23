@@ -15,7 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest", # Right now no need for this
+    "pytest",
     "ruff"
 ] 
 
@@ -38,3 +38,8 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra -q"
