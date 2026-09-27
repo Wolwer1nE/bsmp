@@ -59,9 +59,7 @@ def generate_eigen_matrices(
     if n <= 0:
         raise ValueError(f"n must be positive, got {n}")
     if density_A <= 0 or density_B <= 0:
-        raise ValueError(
-            f"densities must be positive, got {density_A}, {density_B}"
-        )
+        raise ValueError(f"densities must be positive, got {density_A}, {density_B}")
     if not output_filename_A or not output_filename_B:
         raise ValueError("output filename is empty")
     if not exists(dirname(output_filename_A)):

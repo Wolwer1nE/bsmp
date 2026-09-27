@@ -8,6 +8,9 @@ cmake-build-debug/
 out/
 .vs/
 
+.vscode
+.qwen
+
 CMakeUserPresets.json
 
 
@@ -28,6 +31,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 __pycache__/
+python/src/bsmp/bin/
 
 python/figures
 python/reports

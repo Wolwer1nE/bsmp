@@ -5,7 +5,7 @@ import subprocess
 from os.path import isfile
 
 from bsmp.config import CONFIG
-from bsmp.launchers._build import clean_build, is_windows
+from bsmp.launchers._build import clean_build
 
 # Options that take a value and are passed straight through to the executable.
 _VALUE_OPTIONS = (
@@ -95,20 +95,10 @@ def run_eigen(no_build: bool = False, **kwargs) -> None:
             if not isfile(str(path)):
                 raise ValueError(f"required file '{path}' not found")
 
-    if not no_build:
+    if not no_build and CONFIG.is_source_tree:
         clean_build()
 
-    # TODO: un-hardcode the preset name for Windows
-    exe = ""
-    if is_windows():
-        exe = (
-            CONFIG.build_dir
-            / "msvc-ideapad\\examples\\Release\\example_sa_amg_pcg_eigen.exe"
-        )
-    else:
-        exe = CONFIG.build_dir / "example_sa_amg_pcg_eigen"
-    if not isfile(exe):
-        raise ValueError(f"executable '{exe}' not found")
+    exe = CONFIG.find_exe("example_sa_amg_pcg_eigen")
 
     args = []
     for opt, value in raw_args:

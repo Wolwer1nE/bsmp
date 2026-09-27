@@ -5,7 +5,7 @@ import subprocess
 from os.path import isfile
 
 from bsmp.config import CONFIG
-from bsmp.launchers._build import clean_build, is_windows
+from bsmp.launchers._build import clean_build
 
 
 def run_mult(
@@ -27,17 +27,10 @@ def run_mult(
     if not isfile(rhs_file):
         raise ValueError(f"rhs file '{rhs_file}' not found")
 
-    if not no_build:
+    if not no_build and CONFIG.is_source_tree:
         clean_build()
 
-    # TODO: un-hardcode the preset name for Windows
-    exe = ""
-    if is_windows():
-        exe = CONFIG.build_dir / "msvc-ideapad\\examples\\Release\\example.exe"
-    else:
-        exe = CONFIG.build_dir / "example"
-    if not isfile(exe):
-        raise ValueError(f"executable '{exe}' not found")
+    exe = CONFIG.find_exe("example")
 
     args = ["--matrix", matrix_file, "--format", format, "--mults", str(mults)]
     if rhs_file:

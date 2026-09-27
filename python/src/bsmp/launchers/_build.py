@@ -25,10 +25,15 @@ def clean_build() -> None:
             "-B",
             str(CONFIG.build_dir),
             "-DCMAKE_BUILD_TYPE=Release",
-        ],  # FIXME: doesn't work as expected with multi-config generators
+            "-DCMAKE_CONFIGURATION_TYPES=Release"
+        ],
         check=True,
     )
     subprocess.run(
         ["cmake", "--build", str(CONFIG.build_dir), "--clean-first", "-j"],
         check=True,
+    )
+    subprocess.run(
+            ["cmake", "--install", str(CONFIG.build_dir), "--clean-first", "-j"],
+            check=True,
     )

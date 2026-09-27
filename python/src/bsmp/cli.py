@@ -5,6 +5,12 @@ import click
 
 from bsmp.generators.eigen import generate_eigen_matrices
 from bsmp.generators.matrix import generate_matrix
+from bsmp.launchers.compare import (
+    DEFAULT_PRECONDS,
+    run_compare_all,
+    run_compare_preconditioners,
+    run_compare_solvers,
+)
 from bsmp.launchers.eigen import run_eigen
 from bsmp.launchers.mult import run_mult
 from bsmp.launchers.solve import run_solve
@@ -44,9 +50,7 @@ def matrix_generator(output_file, n_blocks, block_size, random):
 @click.option("-n", "--size", default=100, help="Matrix size")
 @click.option("--density-a", default=0.01, help="Density of matrix A")
 @click.option("--density-b", default=0.005, help="Density of matrix B")
-def eigenvalue_generator(
-    output_file_a, output_file_b, size, density_a, density_b
-):
+def eigenvalue_generator(output_file_a, output_file_b, size, density_a, density_b):
     """Generate matrix and rhs for eigenvalue search"""
     try:
         generate_eigen_matrices(
@@ -160,9 +164,7 @@ def solve_launcher(
     help="Full mixed mass matrix M (or mechanical M in legacy block mode)",
 )
 @click.option("--coords", help="Node coordinates file (x y z per line)")
-@click.option(
-    "--ordering", help="Input ordering label: node-based or block-wise"
-)
+@click.option("--ordering", help="Input ordering label: node-based or block-wise")
 @click.option(
     "--dielectric-sign",
     help="Phi-Phi interpretation in full C: negated or as-is",
@@ -176,15 +178,11 @@ def solve_launcher(
 @click.option("--modes", help="Number of eigenpairs to compute (default: 3)")
 @click.option("--tol", help="Deflated PCG tolerance (default: 1e-3)")
 @click.option("--max-iters", help="Deflated PCG iteration limit (default: 400)")
-@click.option(
-    "--sa-amg-regularization-epsilon", help="SA-AMG regularization epsilon"
-)
+@click.option("--sa-amg-regularization-epsilon", help="SA-AMG regularization epsilon")
 @click.option("--sa-amg-pre-sweeps", help="SA-AMG pre-smoothing sweeps")
 @click.option("--sa-amg-post-sweeps", help="SA-AMG post-smoothing sweeps")
 @click.option("--sa-amg-jacobi-damping", help="SA-AMG Jacobi damping")
-@click.option(
-    "--sa-amg-prolongation-damping", help="SA-AMG prolongation damping"
-)
+@click.option("--sa-amg-prolongation-damping", help="SA-AMG prolongation damping")
 @click.option("--sa-amg-use-chebyshev", help="SA-AMG Chebyshev smoothing (0|1)")
 @click.option(
     "--verbose",
@@ -261,9 +259,124 @@ def eigen_launcher(
         raise SystemExit(1) from e
 
 
+@click.command()
+@click.option("--matrix", help="Input matrix file (required)", required=True)
+@click.option("--rhs", help="RHS vector file (required)", required=True)
+@click.option(
+    "--preconds",
+    default=DEFAULT_PRECONDS,
+    help="Comma-separated list of preconditioners",
+)
+@click.option("--restart", default="30", help="GMRES restart size (default: 30)")
+@click.option("--max-iters", default="1000", help="Maximum iterations (default: 1000)")
+@click.option(
+    "--tol", default="1e-6", help="Relative residual tolerance (default: 1e-6)"
+)
+@click.option(
+    "--no-build",
+    is_flag=True,
+    default=False,
+    help="Skip build step and use existing executables",
+)
+def compare_all_launcher(matrix, rhs, preconds, restart, max_iters, tol, no_build):
+    """Run the full solver/preconditioner comparison matrix"""
+    try:
+        run_compare_all(matrix, rhs, preconds, restart, max_iters, tol, no_build)
+    except ValueError as e:
+        print(f"Invalid inputs error: {e}")
+        raise SystemExit(1) from e
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        raise SystemExit(1) from e
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise SystemExit(1) from e
+
+
+@click.command()
+@click.option(
+    "--method",
+    type=click.Choice(["bicgstab", "gmres"]),
+    required=True,
+    help="Solver: bicgstab or gmres (required)",
+)
+@click.option("--matrix", help="Input matrix file (required)", required=True)
+@click.option("--rhs", help="RHS vector file (required)", required=True)
+@click.option(
+    "--preconds",
+    default=DEFAULT_PRECONDS,
+    help="Comma-separated list of preconditioners",
+)
+@click.option("--restart", default="30", help="GMRES restart size (default: 30)")
+@click.option("--max-iters", default="1000", help="Maximum iterations (default: 1000)")
+@click.option(
+    "--tol", default="1e-6", help="Relative residual tolerance (default: 1e-6)"
+)
+@click.option(
+    "--no-build",
+    is_flag=True,
+    default=False,
+    help="Skip build step and use existing executables",
+)
+def compare_preconditioners_launcher(
+    method, matrix, rhs, preconds, restart, max_iters, tol, no_build
+):
+    """Compare several preconditioners for one solver"""
+    try:
+        run_compare_preconditioners(
+            method, matrix, rhs, preconds, restart, max_iters, tol, no_build
+        )
+    except ValueError as e:
+        print(f"Invalid inputs error: {e}")
+        raise SystemExit(1) from e
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        raise SystemExit(1) from e
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise SystemExit(1) from e
+
+
+@click.command()
+@click.option("--matrix", help="Input matrix file (required)", required=True)
+@click.option("--rhs", help="RHS vector file (required)", required=True)
+@click.option(
+    "--precond",
+    default="amg",
+    help="Preconditioner: amg, scalar-jacobi, block-jacobi, none (default: amg)",
+)
+@click.option("--restart", default="30", help="GMRES restart size (default: 30)")
+@click.option("--max-iters", default="1000", help="Maximum iterations (default: 1000)")
+@click.option(
+    "--tol", default="1e-6", help="Relative residual tolerance (default: 1e-6)"
+)
+@click.option(
+    "--no-build",
+    is_flag=True,
+    default=False,
+    help="Skip build step and use existing executables",
+)
+def compare_solvers_launcher(matrix, rhs, precond, restart, max_iters, tol, no_build):
+    """Compare BiCGStab and GMRES on the same linear system"""
+    try:
+        run_compare_solvers(matrix, rhs, precond, restart, max_iters, tol, no_build)
+    except ValueError as e:
+        print(f"Invalid inputs error: {e}")
+        raise SystemExit(1) from e
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        raise SystemExit(1) from e
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise SystemExit(1) from e
+
+
 launch.add_command(mult_launcher, "mult")
 launch.add_command(solve_launcher, "solve")
 launch.add_command(eigen_launcher, "eigen")
+launch.add_command(compare_all_launcher, "compare-all")
+launch.add_command(compare_preconditioners_launcher, "compare-preconditioners")
+launch.add_command(compare_solvers_launcher, "compare-solvers")
 
 
 if __name__ == "__main__":

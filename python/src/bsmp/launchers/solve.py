@@ -8,7 +8,7 @@ from os.path import isfile
 from pathlib import Path
 
 from bsmp.config import CONFIG
-from bsmp.launchers._build import clean_build, is_windows
+from bsmp.launchers._build import clean_build
 
 SUPPORTED_METHODS = ("bicgstab", "gmres")
 SUPPORTED_PRECONDS = ("amg", "scalar-jacobi", "block-jacobi", "none")
@@ -77,26 +77,10 @@ def run_solve(
     if not isfile(rhs_file):
         raise ValueError(f"rhs file '{rhs_file}' not found")
 
-    if not no_build:
+    if not no_build and CONFIG.is_source_tree:
         clean_build()
 
-    # TODO: un-hardcode the preset name for Windows
-    exe_filename = "example_gmres" if method == "gmres" else "example_bicgstab"
-    exe = ""
-    if is_windows():
-        exe = CONFIG.build_dir / (
-            "msvc-ideapad\\examples\\Release\\" + exe_filename + ".exe"
-        )
-    else:
-        exe = CONFIG.build_dir / (
-            "example_gmres" if method == "gmres" else "example_bicgstab"
-        )
-
-    if not isfile(exe):
-        raise ValueError(f"executable '{exe}' not found")
-
-    if not isfile(exe):
-        raise ValueError(f"executable '{exe}' not found")
+    exe = CONFIG.find_exe(f"example_{method}")
 
     rhs_to_use = _strip_mm_vector_header(rhs_file)
 
