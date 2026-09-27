@@ -27,6 +27,39 @@
     This will build and run the multiplication example 10 times, printing verbose output.
     It should also work on Ubuntu 22.04 and WSL by hitting F5 in VSCode, but you will have to provide inputs.
 
+## Working with presets
+
+It is almost guaranteed that you will need to create a custom preset for CMake. It can help you specifying CUDA version, as well as enabling or disabling static checks. For custom presets, create `CMakeUserPresets.json` file. An example of CMake preset:
+```json
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "msvc-custom",
+            "inherits": "msvc",
+            "generator": "Visual Studio 17 2022",
+            "cacheVariables": {
+                "CMAKE_CUDA_ARCHITECTURES": "70",
+                "BSMP_ENABLE_CLANG_TIDY": "OFF",
+                "BSMP_ENABLE_COMPUTE_SANITIZER": "OFF"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "msvc-custom-debug",
+            "configurePreset": "msvc-custom",
+            "configuration": "Debug"
+        },
+        {
+            "name": "msvc-custom-release",
+            "configurePreset": "msvc-custom",
+            "configuration": "Release"
+        }
+    ]
+}
+```
+
 ## Available Modules
 
 ### Computation
