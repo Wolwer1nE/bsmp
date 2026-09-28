@@ -20,13 +20,10 @@ pip install -e .
 ```sh
 pip install -e .[dev]
 ```
-4. To work, python binding for bsmp require having executables of bsmp examples next to it, inside `python/src/bsmp/bin`.
-They can be put into a separate folder using cmake:
+
+## Creating a wheel
+
+Call this command:
 ```sh
-cmake --install build --prefix TEMP_FOLDER
+python -m pip wheel . -w ../dist --no-deps
 ```
-Then `TEMP_FOLDER\bin` can be copied to  `python/src/bsmp/`.
-5. There is an automated script to build python package wheel for current pc. The command:
-```sh
-python tools/pack.py
-``

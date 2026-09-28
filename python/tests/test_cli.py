@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+"""CLI test suite for bsmp."""
+
 import subprocess
 from pathlib import Path
 

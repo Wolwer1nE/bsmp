@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Comparison launchers for the BSMP solvers (mirror bin/compare_*.sh)."""
 
 import os
@@ -11,7 +11,7 @@ from os.path import isfile
 from pathlib import Path
 
 from bsmp.config import CONFIG
-from bsmp.launchers._build import clean_build
+from bsmp.launchers._build import ensure_built
 from bsmp.launchers.solve import run_solve
 
 DEFAULT_PRECONDS = "amg,scalar-jacobi,block-jacobi,none"
@@ -176,8 +176,7 @@ def run_compare_all(
     """Run the full solver/preconditioner comparison matrix."""
     _validate(matrix_file, rhs_file)
 
-    if not no_build and CONFIG.is_source_tree:
-        clean_build()
+    ensure_built(no_build=no_build)
 
     precond_list = _parse_preconds(preconds)
     tmp_dir = Path(tempfile.mkdtemp(prefix="bsmp_compare_all_"))
@@ -251,8 +250,7 @@ def run_compare_preconditioners(
         raise ValueError("--method must be bicgstab or gmres")
     _validate(matrix_file, rhs_file)
 
-    if not no_build and CONFIG.is_source_tree:
-        clean_build()
+    ensure_built(no_build=no_build)
 
     precond_list = _parse_preconds(preconds)
     tmp_dir = Path(tempfile.mkdtemp(prefix="bsmp_compare_preconditioners_"))
@@ -323,8 +321,7 @@ def run_compare_solvers(
     """Compare BiCGStab and GMRES on the same linear system."""
     _validate(matrix_file, rhs_file)
 
-    if not no_build and CONFIG.is_source_tree:
-        clean_build()
+    ensure_built(no_build=no_build)
 
     tmp_dir = Path(tempfile.mkdtemp(prefix="bsmp_compare_solvers_"))
 

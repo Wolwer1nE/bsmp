@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Launcher for the BSMP multiplication test (mirrors bin/cmd/mult.sh)."""
 
 import subprocess
 from os.path import isfile
 
 from bsmp.config import CONFIG
-from bsmp.launchers._build import clean_build
+from bsmp.launchers._build import ensure_built
 
 
 def run_mult(
@@ -27,8 +27,7 @@ def run_mult(
     if not isfile(rhs_file):
         raise ValueError(f"rhs file '{rhs_file}' not found")
 
-    if not no_build and CONFIG.is_source_tree:
-        clean_build()
+    ensure_built(no_build=no_build)
 
     exe = CONFIG.find_exe("example")
 

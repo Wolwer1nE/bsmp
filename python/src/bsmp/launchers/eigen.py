@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Launcher for the BSMP eigen example (mirrors bin/cmd/eigen.sh)."""
 
 import subprocess
 from os.path import isfile
 
 from bsmp.config import CONFIG
-from bsmp.launchers._build import clean_build
+from bsmp.launchers._build import ensure_built
 
 # Options that take a value and are passed straight through to the executable.
 _VALUE_OPTIONS = (
@@ -95,8 +95,7 @@ def run_eigen(no_build: bool = False, **kwargs) -> None:
             if not isfile(str(path)):
                 raise ValueError(f"required file '{path}' not found")
 
-    if not no_build and CONFIG.is_source_tree:
-        clean_build()
+    ensure_built(no_build=no_build)
 
     exe = CONFIG.find_exe("example_sa_amg_pcg_eigen")
 

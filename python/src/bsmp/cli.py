@@ -16,7 +16,39 @@ from bsmp.launchers.mult import run_mult
 from bsmp.launchers.solve import run_solve
 
 
-@click.group()
+# This class is for command aliases
+class AliasedGroup(click.Group):
+    def __init__(self, *args, aliases=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._aliases = aliases or {}
+    # That is how aliases work
+    def get_command(self, ctx, cmd_name):
+        cmd_name = self._aliases.get(cmd_name, cmd_name)
+        return super().get_command(ctx, cmd_name)
+    # Beautifying help text
+    def format_commands(self, ctx, formatter):
+        commands = []
+        for subcommand in self.list_commands(ctx):
+            cmd = self.get_command(ctx, subcommand)
+            if cmd is None:
+                continue
+            help_text = cmd.get_short_help_str(limit=formatter.width)
+            # Find all aliases that point to this subcommand
+            aliases = [a for a, target in self._aliases.items() if target == subcommand]
+            if aliases:
+                subcommand = f"{subcommand} ({'/'.join(aliases)})"
+            commands.append((subcommand, help_text))
+
+        if commands:
+            with formatter.section("Commands"):
+                formatter.write_dl(commands)
+
+@click.group(cls=AliasedGroup, aliases={
+    "gen": "generate",
+    "g": "generate",
+    "run": "launch",
+    "r": "launch"
+})
 @click.version_option()
 def cli() -> None:
     """BSMP command-line tools"""

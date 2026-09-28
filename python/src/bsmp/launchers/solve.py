@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Launcher for the BSMP solver (mirrors bin/cmd/solve.sh)."""
 
 import re
@@ -8,7 +8,7 @@ from os.path import isfile
 from pathlib import Path
 
 from bsmp.config import CONFIG
-from bsmp.launchers._build import clean_build
+from bsmp.launchers._build import ensure_built
 
 SUPPORTED_METHODS = ("bicgstab", "gmres")
 SUPPORTED_PRECONDS = ("amg", "scalar-jacobi", "block-jacobi", "none")
@@ -77,8 +77,7 @@ def run_solve(
     if not isfile(rhs_file):
         raise ValueError(f"rhs file '{rhs_file}' not found")
 
-    if not no_build and CONFIG.is_source_tree:
-        clean_build()
+    ensure_built(no_build=no_build)
 
     exe = CONFIG.find_exe(f"example_{method}")
 

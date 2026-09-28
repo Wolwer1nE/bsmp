@@ -1,14 +1,21 @@
 [build-system]
 requires = ["setuptools>=70.1", "wheel"]
-build-backend = "setuptools.build_meta"
+build-backend = "_custom_build.bsmp_custom_build_backend"
+backend-path = ["."]
 
 [project]
 name = "bsmp"
 version = "0.1.0"
-description = "Python scripts and cmdlets for BSMP project"
+description = "Python wrapper for BSMP project"
+license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.12"
-authors = [{ name = "Vladislav Krylov", email = "vvkrylov1@gmail.com" }]
+authors = [
+    { name = "Vladislav Krylov", email = "vvkrylov1@gmail.com" },
+    { name = "Pavel Oganesyan", email = "poganesyan@sfedu.ru" },
+    { name = "Ivan Ignatenko", email = "iignatenko@sfedu.ru" }
+]
 dependencies = [
     "click",
 ]
