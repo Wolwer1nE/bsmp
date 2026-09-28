@@ -23,7 +23,9 @@ pip install -e .[dev]
 
 ## Creating a wheel
 
-Call this command:
+Ensure you have installed .[dev] dependencies. Call this command:
 ```sh
-python -m pip wheel . -w ../dist --no-deps
+python -m build --sdist
+python -m build --wheel
 ```
+Everything will be in dist/

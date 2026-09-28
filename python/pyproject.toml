@@ -24,7 +24,9 @@ dependencies = [
 dev = [
     "pytest",
     "ruff",
-    "wheel"
+    "wheel",
+	"build",
+	"setuptools>=70.1"
 ]
 
 [project.scripts]
