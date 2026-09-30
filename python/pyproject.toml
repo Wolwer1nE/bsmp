@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=70.1", "wheel"]
+build-backend = "_custom_build.bsmp_custom_build_backend"
+backend-path = ["."]
+
+[project]
+name = "bsmp"
+version = "0.1.0"
+description = "Python wrapper for BSMP project"
+license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Vladislav Krylov", email = "vvkrylov1@gmail.com" },
+    { name = "Pavel Oganesyan", email = "poganesyan@sfedu.ru" },
+    { name = "Ivan Ignatenko", email = "iignatenko@sfedu.ru" }
+]
+dependencies = [
+    "click",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "wheel",
+	"build",
+	"setuptools>=70.1"
+]
+
+[project.scripts]
+bsmp = "bsmp.cli:cli"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bsmp = ["bin/*"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = [
+    "N803", # uppercase argument names
+    "N806", # uppercase variables in function
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra -q"
