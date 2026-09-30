@@ -1,0 +1,47 @@
+{
+    "schema_version": "1.0.0",
+    "hardware": {
+        "gpu_model": "NVIDIA RTX A5000",
+        "compute_capability": "sm_86",
+        "cuda_version": "12.4"
+    },
+    "problem": {
+        "type": "solve",
+        "matrix": {
+            "name": "thermal2",
+            "rows": 1228045,
+            "columns": 1228045,
+            "nnz": 8580313
+        },
+        "rhs": {
+            "size": 1228045,
+            "from_task": false
+        }
+    },
+    "runs": [
+        {
+            "parameters": {
+                "solver": "cg",
+                "preconditioner": "jacobi",
+                "max_iters": 5000,
+                "tolerance": 1e-8
+            },
+            "metrics": {
+                "time": 12.53,
+                "residual": 9.7e-9
+            }
+        },
+        {
+            "parameters": {
+                "solver": "bicgstab",
+                "preconditioner": "ilu0",
+                "max_iters": 3000,
+                "tolerance": 1e-8
+            },
+            "metrics": {
+                "time": 9.81,
+                "residual": 8.4e-9
+            }
+        }
+    ]
+}

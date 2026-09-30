@@ -1,0 +1,153 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/Wolwer1nE/bsmp/refs/heads/master/schemas/v1/record.schema.json",
+    "title": "Experiment record",
+    "description": "A record of runs on a single matrix",
+    "type": "object",
+    "required": [
+        "schema_version",
+        "hardware",
+        "problem",
+        "runs"
+    ],
+    "properties": {
+        "schema_version": {
+            "type": "string"
+        },
+        "hardware": {
+            "type": "object",
+            "required": [
+                "gpu_model",
+                "cuda_version",
+                "compute_capability"
+            ],
+            "properties": {
+
+                "gpu_model": {
+                    "type": "string"
+                },
+                "cuda_version": {
+                    "type": "string"
+                },
+                "compute_capability": {
+                    "type": "string"
+                }
+            }
+        },
+        "problem": {
+            "type": "object",
+            "required": [
+                "type",
+                "matrix"
+            ],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "spmv",
+                        "solve",
+                        "eigen"
+                    ]
+                },
+                "matrix": {
+                    "required": [
+                        "name",
+                        "rows",
+                        "columns",
+                        "nnz"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "rows": {
+                            "type": "integer"
+                        },
+                        "columns": {
+                            "type": "integer"
+                        },
+                        "nnz": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "rhs": {
+                    "type": "object",
+                    "required": [
+                        "size",
+                        "from_task"
+                    ],
+                    "properties": {
+                        "size": {
+                            "type": "integer"
+                        },
+                        "from_task": {
+                            "type": "boolean"
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "eigen"
+                            }
+                        }
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "rhs"
+                            ]
+                        }
+                    },
+                    "else": {
+                        "required": [
+                            "rhs"
+                        ]
+                    }
+                }
+            ]
+        },
+        "runs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "parameters": {
+                        "type": "object",
+                        "solver": {
+                            "type": "string"
+                        },
+                        "preconditioner": {
+                            "type": [ "string", "null" ]
+                        },
+                        "max_iters": {
+                            "type": "integer"
+                        },
+                        "tolerance": {
+                            "type": "number"
+                        }
+                    },
+                    "metrics": {
+                        "type": "object",
+                        "required": [
+                            "time",
+                            "residual"
+                        ],
+                        "properties": {
+                            "time": {
+                                "type": "number"
+                            },
+                            "residual": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

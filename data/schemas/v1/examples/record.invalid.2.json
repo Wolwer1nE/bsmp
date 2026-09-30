@@ -1,0 +1,22 @@
+{
+    "schema_version": "1.0.0",
+    "hardware": {
+        "gpu_model": "NVIDIA RTX A5000",
+        "compute_capability": "sm_86",
+        "cuda_version": "12.4"
+    },
+    "problem": {
+        "type": "eigen",
+        "matrix": {
+            "name": "bcsstk13",
+            "rows": 2003,
+            "columns": 2003,
+            "nnz": 83883
+        },
+        "rhs": {
+            "size": 2003,
+            "from_task": false
+        }
+    },
+    "runs": []
+}
