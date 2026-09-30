@@ -18,25 +18,26 @@ What data we should manage:
 
 What basic quality control requirements we may enforce:
 - Experiment data:
-        - Data should be taken from a trusted source or generated
-        - If generated, the generation process should be reproducible
-        - If taken from a trusted source, the source should be cited
-        - Single source of truth for each experiment batch should be maintained
+    - Data should be taken from a trusted source or generated
+    - If generated, the generation process should be reproducible
+    - If taken from a trusted source, the source should be cited
+    - Single source of truth for each experiment batch should be maintained
+  
 - Experiment logs:
-        - Experiments for papers should have log files
-        - Log files should be stored in a structured way
-        - Every experiment should be perfectly reproducible from its log files
+    - Experiments for papers should have log files
+    - Log files should be stored in a structured way
+    - Every experiment should be perfectly reproducible from its log files
 - Performance metrics quality:
-		- List of perfrormance metrics to collect should be defined and 
+    - List of perfrormance metrics to collect should be defined and 
 enforced
-        - Check for outliers or unexpected values in the metrics
-        - Check for consistency across multiple runs of the same experiment
-        - Check for platform-specific causes affecting performance metrics
+    - Check for outliers or unexpected values in the metrics
+    - Check for consistency across multiple runs of the same experiment
+    - Check for platform-specific causes affecting performance metrics
 (e.g., GPU warm-up, CPU throttling)
-        - Keep in mind that profiling tools may not be perfectly accurate
-        - Keep in mind that profiling tools may have their own overhead
+    - Keep in mind that profiling tools may not be perfectly accurate
+    - Keep in mind that profiling tools may have their own overhead
 - Code quality metrics quality (xd):
-	- Metrics collection should be automated
+    - Metrics collection should be automated
 	- Metrics collection should be reproducible
 	- Metrics collection should be crossplatform
 	- Metrics should be collected in a structured way
