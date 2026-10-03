@@ -1,3 +1,4 @@
+set (CMAKE_FOLDER "examples")
 
 # Example executable
 add_executable(example example.cu)

@@ -1,4 +1,5 @@
-Checks: "-*
+Checks: "
+    cppcoreguidelines-*
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: "^${PROJECT_SOURCE_DIR}/.*"

@@ -122,7 +122,7 @@
                             "type": "string"
                         },
                         "preconditioner": {
-                            "type": [ "string", "null" ]
+                            "type": "string"
                         },
                         "max_iters": {
                             "type": "integer"
