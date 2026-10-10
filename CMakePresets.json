@@ -20,9 +20,6 @@
                 "CMAKE_CUDA_STANDARD_REQUIRED": "ON",
                 "CMAKE_CUDA_ARCHITECTURES": "75;80;86;89;90;100;130",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-
-                // I have no idea what these things do
-                // but smart people on the Internet say to add it
                 "STATIC_ANALYSIS_ENABLED": "ON",
                 "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
                 "CMAKE_CUDA_SEPARABLE_COMPILATION": "ON",

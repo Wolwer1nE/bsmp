@@ -6,7 +6,6 @@ option(BSMP_ENABLE_COMPUTE_SANITIZER "Enables analysis with compute-sanitizer" O
 option(BSMP_ENABLE_CLANG_TIDY "Enables static analysis with clang-tidy" ON)
 
 include(CTest)
-enable_testing()
 
 include("cmake/Setup.cmake")
 include("cmake/FindCuda.cmake")
@@ -17,6 +16,7 @@ include("cmake/Sanitizer.cmake")
 add_subdirectory(src)
 add_subdirectory(examples)
 
+enable_testing()
 add_subdirectory(test)
 
 # Installation (optional)

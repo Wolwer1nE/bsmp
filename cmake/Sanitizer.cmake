@@ -1,7 +1,8 @@
 function(bsmp_add_memcheck TARGET_NAME)
     find_program(COMPUTE_SANITIZER
         NAMES compute-sanitizer
-        HINTS ${CUDAToolkit_BIN_DIR}
+        HINTS "${CUDAToolkit_LIBRARY_ROOT}/compute-sanitizer"
+          "${CUDAToolkit_BIN_DIR}/../compute-sanitizer"
     )
      if(NOT COMPUTE_SANITIZER)
         message(FATAL_ERROR "compute-sanitizer not found")
