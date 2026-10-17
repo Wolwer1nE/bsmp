@@ -16,6 +16,7 @@ def run_mult(
     output: str,
     verbose: bool,
     no_build: bool,
+    cwd: str | None = None,
 ) -> None:
     """Run the multiplication test on the given matrix and RHS vector."""
     if not matrix_file:
@@ -39,4 +40,4 @@ def run_mult(
     if verbose:
         args += ["--verbose"]
 
-    subprocess.run([str(exe), *args], check=True)
+    subprocess.run([str(exe), *args], check=True, cwd=cwd)

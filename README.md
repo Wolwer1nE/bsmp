@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- C++14 or higher
+- C++17 or higher
 - CMake 3.18 or higher
 - CUDA 12.5
 - Python 3.12+ (for CLI tooling)
@@ -63,6 +63,32 @@ bsmp launch compare-preconditioners --method gmres --matrix data/bsmp1.txt --rhs
 bsmp launch compare-all --matrix data/bsmp1.txt --rhs data/bsmp1_rhs.txt
 ```
 
+### Benchmark
+
+Run one or more examples over several (matrix, rhs) pairs, then aggregate
+the JSON records they produce into a single table and plots:
+
+```bash
+# 2 cases × (mult + bicgstab)
+bsmp benchmark run \
+    --matrix data/a.txt --rhs data/a_rhs.txt \
+    --matrix data/b.txt --rhs data/b_rhs.txt \
+    --method mult --method bicgstab \
+    --table results.csv --plot results.png
+```
+
+Each (case, method) runs in its own working directory; the records are
+collected into `<work-dir>/records/` (default working directory is
+temporary — use `--work-dir` / `--records-dir` to keep them). Records can be
+re-processed later without re-running:
+
+```bash
+bsmp benchmark table records_dir
+bsmp benchmark plot records_dir -o results.png
+```
+
+Plots require `matplotlib` (`pip install -e .[plot]`).
+
 ### Eigenvalue problems
 
 ```bash
@@ -71,7 +97,7 @@ bsmp generate eigenvalue data/A.txt data/B.txt --size 200
 
 # Run the SA-AMG PCG eigensolver
 bsmp launch eigen --stiffness data/stiffness.txt --mass data/mass.txt --coords data/coords.txt \
-    --ordering block-wise --num-eigs 5 --sa-amg-use-chebyshev 1
+    --ordering block-wise --modes 5 --sa-amg-use-chebyshev 1
 ```
 
 ## CLI Reference
@@ -80,7 +106,7 @@ The top-level command is `bsmp`. Aliases `gen`/`g` and `run`/`r` are available.
 
 ```
 bsmp [--version]
-bsmp {generate, launch} [--help]
+bsmp {generate, launch, benchmark} [--help]
 ```
 
 ### `bsmp generate` (aliases: `gen`, `g`)
@@ -209,6 +235,43 @@ Compares BiCGStab vs GMRES on the same system.
 | `--tol` | `1e-6` | Tolerance |
 | `--no-build` | — | Skip CMake build |
 
+### `bsmp benchmark`
+
+Benchmarks the examples over multiple (matrix, rhs) pairs. Each (case, method)
+runs in its own working directory; the JSON records the examples write
+(`log*.json`) are collected into one records directory, aggregated into a
+single table and plotted.
+
+#### `bsmp benchmark run`
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--matrix` | *(repeatable, required)* | Matrix file — paired with `--rhs` by index |
+| `--rhs` | *(repeatable, required)* | RHS vector file |
+| `--method` | `bicgstab, gmres` | Examples to run: `mult` / `bicgstab` / `gmres` (repeatable) |
+| `--mults` | `10` | Chained multiplies for the `mult` example |
+| `--precond` | `""` | Preconditioner for the solvers |
+| `--max-iters` | — | Solver iteration limit |
+| `--tol` | — | Solver relative residual tolerance |
+| `--restart` | — | GMRES restart size |
+| `--work-dir` | — | Directory for per-case run outputs (default: temporary) |
+| `--records-dir` | — | Collected JSON records directory (default: `<work-dir>/records`) |
+| `--table` | — | Write the aggregated table to this CSV path |
+| `--plot` | — | Write plots to this PNG path |
+| `--no-build` | — | Skip CMake build |
+
+#### `bsmp benchmark table <records...>`
+
+Parses collected JSON records (files or directories) into one table and
+prints it; `--output <csv>` also writes a CSV. Failed runs are skipped with a
+WARNING.
+
+#### `bsmp benchmark plot <records...>`
+
+Parses collected JSON records and writes a plot PNG (`-o`/`--output`,
+default `benchmark_plot.png`): mean time and final residual per case, plus a
+time-vs-matrix-size scatter. Requires `matplotlib` — `pip install -e .[plot]`.
+
 ## Working with presets
 
 It is almost guaranteed that you will need to create a custom preset for CMake. It can help you specifying CUDA version, as well as enabling or disabling static checks. For custom presets, create `CMakeUserPresets.json` file. An example of CMake preset:
@@ -219,7 +282,7 @@ It is almost guaranteed that you will need to create a custom preset for CMake. 
         {
             "name": "msvc-custom",
             "inherits": "msvc",
-            "generator": "Visual Studio 17 2022",
+            "generator": "Visual Studio 18 2026",
             "cacheVariables": {
                 "CMAKE_CUDA_ARCHITECTURES": "70",
                 "BSMP_ENABLE_CLANG_TIDY": "OFF",
@@ -260,7 +323,7 @@ Implements a restarted GMRES iterative solver for general non-symmetric sparse s
 
 ### Solvers
 
-Both solvers output convergence status, iteration count, final relative residual, and solve time in milliseconds.
+Both solvers output convergence status, iteration count, final relative residual, and solve time in milliseconds. Every example also writes a JSON experiment record (`log*.json`) to its working directory — see the schema in `data/schemas/v1/record.schema.json`; `bsmp benchmark` aggregates these records into tables and plots.
 
 ### PETSc/SLEPc Reference
 
@@ -281,6 +344,11 @@ python3 vendor/petsc_mixed_eigen.py \
 
 ### generators/matrix.py / `bsmp generate matrix`
 Generates block-sparse matrices in triplet format for testing.
+
+### benchmark/ — `bsmp benchmark`
+Runs the examples over many (matrix, rhs) pairs, collects their JSON records
+(`log*.json`) into a shared records directory, and produces a combined table
+and plots (matplotlib required for plots — `pip install -e .[plot]`).
 
 ### tools/sparse_spy.py
 Python utility for MATLAB-like sparsity visualization from plain-text triplets. Ignores explicit zeros automatically.
@@ -327,3 +395,5 @@ cmake --install . --config Release
 - Avoid editing generated files under `build/`.
 - Every new solver must mirror the existing integration pattern (CLI dispatch, executable target, README).
 - CUDA device-link conflicts occur if helper kernels in multiple `.cu` files share global linkage — use internal linkage.
+- Host-only C++ executables linking `bsmp` (built with separable compilation) must include a `.cu` anchor source (`examples/device_link.cu`) so CMake runs the device-link step.
+- Every example writes a JSON experiment record to its working directory (schema: `data/schemas/v1/record.schema.json`).

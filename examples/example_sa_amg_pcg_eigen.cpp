@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <chrono>
 #include <cctype>
+#include <cmath>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -14,6 +16,7 @@
 #include <string>
 #include <vector>
 
+#include <cuda_runtime.h>
 #include <cusolverDn.h>
 
 #include "deflated_pcg_eigensolver.h"
@@ -22,6 +25,7 @@
 #include "node_layout.h"
 #include "piezo_block_system.h"
 #include "piezo_scaling.h"
+#include "record/record_builder.h"
 #include "sa_amg_preconditioner.h"
 #include "schur_operator.h"
 
@@ -1149,6 +1153,43 @@ SolveAttempt run_iterative_attempt_with_retries(const std::string& label,
     return best_attempt;
 }
 
+void log_hardware_info(bsmp::experiment::Record& rec) {
+    int runtimeVersion = 0, driverVersion = 0;
+    cudaRuntimeGetVersion(&runtimeVersion);
+    cudaDriverGetVersion(&driverVersion);
+
+    int deviceCount = 0;
+    cudaError_t error = cudaGetDeviceCount(&deviceCount);
+    if (error != cudaSuccess) {
+        std::cerr << "cudaGetDeviceCount failed: " << cudaGetErrorString(error) << std::endl;
+        return;
+    }
+
+    if (deviceCount == 0) {
+        std::cout << "No CUDA-capable devices found." << std::endl;
+        return;
+    }
+    cudaError_t err = cudaGetDeviceCount(&deviceCount);
+    if (err != cudaSuccess || deviceCount == 0) {
+        std::cerr << "No CUDA device available: "
+                  << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    // First GPU is device index 0
+    cudaDeviceProp prop;
+    err = cudaGetDeviceProperties(&prop, 0);
+    if (err != cudaSuccess) {
+        std::cerr << "cudaGetDeviceProperties failed: "
+                  << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    int cc = prop.major * 10 + prop.minor;
+
+    rec.hardware(prop.name, std::to_string(runtimeVersion / 10), std::to_string(cc));
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -1196,6 +1237,22 @@ int main(int argc, char** argv) {
         const auto scaling = build_selected_scaling(system, options);
         bsmp::PiezoBlockSystem scaled = bsmp::scale_piezo_system(system, scaling);
         bsmp::SchurOperator schur(scaled);
+
+        bsmp::experiment::Record recorder;
+        recorder.schema_version("1.0.0");
+        log_hardware_info(recorder);
+
+        recorder.type("eigen");
+        const std::string matrix_name = options.synthetic
+            ? "synthetic"
+            : (has_full_matrix_inputs(options)
+                   ? std::filesystem::path{options.stiffness_path}.stem().string()
+                   : std::filesystem::path{options.cu_path}.stem().string());
+        const BlockSparseMatrix& stiffness = scaled.mechanicalStiffness();
+        recorder.matrix(matrix_name,
+                        stiffness.getConfig().num_rows,
+                        stiffness.getConfig().num_cols,
+                        stiffness.getConfig().num_nonzero_blocks);
 
         const bsmp::NodeLayout layout = bsmp::NodeLayout::fromNodeCoordinates(
             coordinates,
@@ -1255,6 +1312,19 @@ int main(int argc, char** argv) {
             }
         }
         const bsmp::DeflatedPCGEigenResult& result = attempt.result;
+
+        bsmp::experiment::Run run;
+        run.solver(attempt.label == "explicit-schur-cusolver" ? "explicit-schur-cusolver"
+                                                              : "deflated-pcg-eigen");
+        run.preconditioner(attempt.label == "sa-amg" ? "sa-amg" : "none");
+        run.max_iters(static_cast<uint32_t>(options.max_iters));
+        run.tolerance(options.tol);
+        run.time(static_cast<float>(attempt.solve_ms));
+        if (std::isfinite(attempt.worst_relative_residual)) {
+            run.residual(attempt.worst_relative_residual);
+        }
+        recorder.run(run);
+        recorder.write("log_sa_amg_pcg_eigen.json");
 
         std::cout << "SA-AMG regularization alpha = " << preconditioner->alpha() << std::endl;
         std::cout << "eigensolve path: " << attempt.label << std::endl;

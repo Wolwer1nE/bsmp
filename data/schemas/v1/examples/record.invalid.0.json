@@ -1,0 +1,18 @@
+{
+    "schema_version": "1.0.0",
+    "hardware": {
+        "gpu_model": "NVIDIA GeForce GTX 1650",
+        "compute_capability": "sm_75",
+        "cuda_version": "13.2"
+    },
+    "problem": {
+        "type": "spmv",
+        "matrix": {
+            "name": "generated",
+            "rows": 1000,
+            "columns": 1000,
+            "nnz": 5000
+        }
+    },
+    "runs": []
+}

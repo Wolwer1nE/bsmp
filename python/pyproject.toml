@@ -28,6 +28,9 @@ dev = [
 	"build",
 	"setuptools>=70.1"
 ]
+plot = [
+    "matplotlib",
+]
 
 [project.scripts]
 bsmp = "bsmp.cli:cli"

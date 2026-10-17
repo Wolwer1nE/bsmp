@@ -20,6 +20,8 @@ All user-facing commands flow through a Python CLI (`bsmp`), built on **click**.
 | **Python config** | `python/src/bsmp/config.py` | `Config` dataclass — resolves root, build, exe dirs; `find_exe()` |
 | **Python launchers** | `python/src/bsmp/launchers/*.py` | Build orchestration + subprocess wrappers for each C++ executable |
 | **Python generators** | `python/src/bsmp/generators/*.py` | Synthetic matrix generators (triplet + eigenvalue) |
+| **Python benchmark** | `python/src/bsmp/benchmark/*.py` | Run examples over many (matrix, rhs) pairs, aggregate JSON records, plot |
+| **Experiment Records** | `src/record/record_builder.{h,cpp}` | `Record`/`Run` builders for JSON experiment records (schema in `data/schemas/v1/record.schema.json`), written by every example |
 | **MATLAB tools** | `tools/sparse_spy.py` | Sparsity visualisation from plain-text triplets |
 | **Reference path** | `vendor/petsc_mixed_eigen.py` | Full mixed generalized eigenproblem via PETSc/SLEPc |
 
@@ -27,7 +29,7 @@ All user-facing commands flow through a Python CLI (`bsmp`), built on **click**.
 
 ```
 bsmp [--version]
-bsmp {generate, launch} [--help]
+bsmp {generate, launch, benchmark} [--help]
 ```
 
 Aliases: `gen`/`g` → `generate`, `run`/`r` → `launch`.
@@ -54,7 +56,7 @@ After `pip install -e .` from the `python/` directory, `bsmp` is available globa
 
 ### Prerequisites
 
-- C++14 or higher
+- C++17 or higher
 - CMake 3.18+
 - CUDA 12.5
 - Python 3.12+ (for CLI tooling)
@@ -171,7 +173,7 @@ The top-level command is `bsmp`. Aliases `gen`/`g` and `run`/`r` are available.
 
 ```
 bsmp [--version]
-bsmp {generate, launch} [--help]
+bsmp {generate, launch, benchmark} [--help]
 ```
 
 ### `bsmp generate` (aliases: `gen`, `g`)
@@ -300,6 +302,43 @@ Compares BiCGStab vs GMRES on the same system.
 | `--tol` | `1e-6` | Tolerance |
 | `--no-build` | — | Skip CMake build |
 
+### `bsmp benchmark`
+
+Benchmarks the examples over multiple (matrix, rhs) pairs. Each
+(case, method) runs in its own working directory, the produced JSON records
+(`log*.json`, see "Experiment Record Contract") are collected into one
+records directory, aggregated into a single table and plotted.
+
+#### `bsmp benchmark run`
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--matrix` | *(repeatable, required)* | Matrix file — paired with `--rhs` by index |
+| `--rhs` | *(repeatable, required)* | RHS vector file |
+| `--method` | `bicgstab, gmres` | Examples to run: `mult` / `bicgstab` / `gmres` (repeatable) |
+| `--mults` | `10` | Chained multiplies for the `mult` example |
+| `--precond` | `""` | Preconditioner for the solvers |
+| `--max-iters` | — | Solver iteration limit |
+| `--tol` | — | Solver relative residual tolerance |
+| `--restart` | — | GMRES restart size |
+| `--work-dir` | — | Directory for per-case run outputs (default: temporary) |
+| `--records-dir` | — | Collected JSON records directory (default: `<work-dir>/records`) |
+| `--table` | — | Write the aggregated table to this CSV path |
+| `--plot` | — | Write plots to this PNG path |
+| `--no-build` | — | Skip CMake build |
+
+#### `bsmp benchmark table <records...>`
+
+Parses collected JSON records (files or directories) into one table and
+prints it; `--output <csv>` also writes a CSV. Failed runs are skipped with a
+WARNING.
+
+#### `bsmp benchmark plot <records...>`
+
+Parses collected JSON records and writes a plot PNG (`-o`/`--output`,
+default `benchmark_plot.png`): mean time and final residual per case, plus a
+time-vs-matrix-size scatter. Requires `matplotlib` — `pip install -e .[plot]`.
+
 ## Development Conventions
 
 ### BSMP Block Format Contract
@@ -311,6 +350,7 @@ Compares BiCGStab vs GMRES on the same system.
 ### CUDA Pitfalls
 
 - Helper kernels in multiple `.cu` files with global linkage will cause device-link conflicts. Use **internal linkage** (`__device__ static` or unnamed namespaces) for file-local helper kernels.
+- `bsmp` is built with `CUDA_SEPARABLE_COMPILATION ON` (relocatable device code). A **host-only** C++ executable that links `bsmp.lib` must contain a `.cu` source — CMake performs nvcc's device-link step only for targets with an actual CUDA source; `LANGUAGE CUDA` alone is not enough. Every example target therefore lists `examples/device_link.cu` (a trivial anchor).
 
 ### Adding a New Solver
 
@@ -331,6 +371,22 @@ Every solver must print:
 - Final relative residual
 - Solve time (milliseconds)
 
+### Experiment Record Contract
+
+Every example also writes a JSON experiment record to its working directory:
+
+- `example` → `log.json`
+- `example_bicgstab` → `log_bicgstab.json`
+- `example_gmres` → `log_gmres.json`
+- `example_eigen` → `log_eigen.json`
+- `example_sa_amg_pcg_eigen` → `log_sa_amg_pcg_eigen.json`
+
+Records are built with `bsmp::experiment::Record` / `bsmp::experiment::Run`
+(`src/record/record_builder.{h,cpp}`) and must validate against
+`data/schemas/v1/record.schema.json` (problem types `spmv` / `solve` / `eigen`;
+`eigen` records must omit `problem.rhs`). The `bsmp benchmark` command set
+consumes these records.
+
 ### Python Module Structure
 
 ```
@@ -343,9 +399,15 @@ python/
 │   ├── __init__.py         # Exposes __version__ = "0.1.0"
 │   ├── config.py           # Config dataclass (root, build, exe dirs)
 │   ├── cli.py              # Top-level Click CLI (AliasedGroup)
+│   ├── benchmark/
+│   │   ├── __init__.py    # public API re-exports
+│   │   ├── runner.py      # run_cases() / run_benchmark() — execute + collect records
+│   │   ├── records.py     # collect_records(), rows, print_table(), write_csv()
+│   │   └── plots.py       # make_plots() (optional matplotlib)
 │   ├── generators/
 │   │   ├── matrix.py       # generate_matrix()
 │   │   └── eigen.py        # generate_eigen_matrices()
+│   ├── tracking/           # tracking utilities (placeholder)
 │   └── launchers/
 │       ├── _build.py       # ensure_built() — build guard + clean_build()
 │       ├── mult.py         # run_mult()
@@ -353,7 +415,8 @@ python/
 │       ├── eigen.py        # run_eigen()
 │       └── compare.py      # run_compare_*()
 └── tests/
-    ├── test_cli.py         # Full pytest suite for every CLI command
+    ├── test_cli.py         # pytest suite for every CLI command
+    ├── test_benchmark.py   # pytest suite for the benchmark module/commands
     └── conftest.py
 ```
 
@@ -383,9 +446,14 @@ pytest
 | `python/src/bsmp/cli.py` | Top-level Click CLI |
 | `python/src/bsmp/config.py` | `Config` dataclass, `find_exe()` |
 | `python/src/bsmp/launchers/_build.py` | `clean_build()`, `ensure_built()` |
+| `python/src/bsmp/benchmark/` | Multi-case benchmark runner, records table, plots |
+| `src/record/record_builder.h`, `src/record/record_builder.cpp` | `bsmp::experiment::Record`/`Run` JSON record builders |
+| `data/schemas/v1/record.schema.json` | JSON schema for experiment records |
+| `examples/device_link.cu` | CUDA device-link anchor for the example targets |
 | `python/_custom_build/bsmp_custom_build_backend.py` | Custom PEP 517 build backend (CMake + setuptools) |
 | `python/pyproject.toml` | Package definition, entry point, deps |
 | `python/tests/test_cli.py` | CLI test suite |
+| `python/tests/test_benchmark.py` | Benchmark commands/module tests |
 | `vendor/petsc_mixed_eigen.py` | PETSc/SLEPc reference eigenproblem |
 | `cmake/` | CMake helper scripts (Setup, FindCuda, AddTest, StaticAnalysis, Sanitizer) |
 | `data/` | Sample matrices |
@@ -396,6 +464,7 @@ pytest
 
 - The `bin/` directory has been fully removed. All commands are available via `bsmp`.
 - The Python CLI builds the C++ code automatically before launching executables. Use `--no-build` to skip.
+- Every example writes a JSON experiment record (see "Experiment Record Contract"); `bsmp benchmark` aggregates such records into single tables and plots.
 - The AMG pipeline is a complete SA-AMG hierarchy: aggregation → tentative prolongator → Galerkin coarse operator → Chebyshev smoothing → V-cycle.
 - `vendor/petsc_mixed_eigen.py` supports `block-wise`, `node-based`, and `both` ordering strategies for mixed piezo systems.
 - Avoid editing files under `build/` — they are generated artifacts.

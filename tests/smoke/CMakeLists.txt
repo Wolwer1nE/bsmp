@@ -1,4 +1,4 @@
-set(CTEST_OUTPUT_ON_FAILURE TRUE)
+set(CMAKE_FOLDER "tests/smoke")
 
 file(GLOB SMOKE_TEST_SOURCES "*.cu")
 

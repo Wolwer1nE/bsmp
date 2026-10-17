@@ -1,0 +1,34 @@
+{
+    "schema_version": "1.0.0",
+    "hardware": {
+        "gpu_model": "NVIDIA H100",
+        "compute_capability": "sm_90",
+        "cuda_version": "13.0"
+    },
+    "problem": {
+        "type": "solve",
+        "matrix": {
+            "name": "thermal2",
+            "rows": 1228045,
+            "columns": 1228045,
+            "nnz": 8580313
+        },
+        "rhs": {
+            "size": 1228045,
+            "from_task": false
+        }
+    },
+    "runs": [
+        {
+            "parameters": {
+                "solver": "cg",
+                "preconditioner": "jacobi",
+                "max_iters": 5000,
+                "tolerance": 1e-8
+            },
+            "metrics": {
+                "time": 12.53
+            }
+        }
+    ]
+}

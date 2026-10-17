@@ -1,8 +1,18 @@
 #!/usr/bin/env python
 import subprocess
+import tempfile
+from pathlib import Path
 
 import click
 
+from bsmp.benchmark.plots import make_plots
+from bsmp.benchmark.records import (
+    collect_records,
+    print_table,
+    rows_from_records,
+    write_csv,
+)
+from bsmp.benchmark.runner import METHODS, run_benchmark
 from bsmp.generators.eigen import generate_eigen_matrices
 from bsmp.generators.matrix import generate_matrix
 from bsmp.launchers.compare import (
@@ -409,6 +419,155 @@ launch.add_command(eigen_launcher, "eigen")
 launch.add_command(compare_all_launcher, "compare-all")
 launch.add_command(compare_preconditioners_launcher, "compare-preconditioners")
 launch.add_command(compare_solvers_launcher, "compare-solvers")
+
+
+@cli.group()
+def benchmark() -> None:
+    """Run examples over many matrices and analyze the JSON records"""
+
+
+@click.command()
+@click.option(
+    "--matrix", multiple=True, help="Matrix file, repeatable; pairs with --rhs"
+)
+@click.option(
+    "--rhs", multiple=True, help="RHS vector file, repeatable; pairs with --matrix"
+)
+@click.option(
+    "--method",
+    multiple=True,
+    type=click.Choice(list(METHODS)),
+    help="Example to run, repeatable; default: bicgstab, gmres",
+)
+@click.option(
+    "--mults", default=10, help="Chained multiplies for the mult example (default: 10)"
+)
+@click.option(
+    "--precond",
+    default="",
+    help="Preconditioner for solvers: amg, scalar-jacobi, block-jacobi, none",
+)
+@click.option("--max-iters", default="", help="Solver iteration limit")
+@click.option("--tol", default="", help="Solver relative residual tolerance")
+@click.option("--restart", default="", help="GMRES restart size")
+@click.option(
+    "--work-dir",
+    default="",
+    help="Directory for per-case run outputs (default: temporary)",
+)
+@click.option(
+    "--records-dir",
+    default="",
+    help="Directory for collected JSON records (default: <work-dir>/records)",
+)
+@click.option("--table", "table_path", help="Write the aggregated table to a CSV file")
+@click.option("--plot", "plot_path", help="Write plots to a PNG file")
+@click.option(
+    "--no-build",
+    is_flag=True,
+    default=False,
+    help="Use existing build if present",
+)
+def benchmark_run(
+    matrix,
+    rhs,
+    method,
+    mults,
+    precond,
+    max_iters,
+    tol,
+    restart,
+    work_dir,
+    records_dir,
+    table_path,
+    plot_path,
+    no_build,
+):
+    """Run the selected examples on all (matrix, rhs) pairs"""
+    try:
+        if not matrix or not rhs:
+            raise ValueError("--matrix and --rhs are required (repeat both)")
+        if len(matrix) != len(rhs):
+            raise ValueError(
+                "the number of --matrix and --rhs options must match "
+                "(they are paired by index)"
+            )
+        cases = list(zip(matrix, rhs, strict=True))
+        methods_used = tuple(method) if method else ("bicgstab", "gmres")
+        if not work_dir:
+            work_dir = tempfile.mkdtemp(prefix="bsmp-benchmark-")
+        if not records_dir:
+            records_dir = str(Path(work_dir) / "records")
+        run_benchmark(
+            cases=cases,
+            methods=methods_used,
+            work_dir=work_dir,
+            records_dir=records_dir,
+            mults=mults,
+            precond=precond,
+            max_iters=max_iters,
+            tol=tol,
+            restart=restart,
+            no_build=no_build,
+            table_path=table_path,
+            plot_path=plot_path,
+        )
+    except ValueError as e:
+        print(f"Invalid inputs error: {e}")
+        raise SystemExit(1) from e
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        raise SystemExit(1) from e
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise SystemExit(1) from e
+
+
+@click.command()
+@click.argument("records", nargs=-1, required=True)
+@click.option("--output", help="Write the table to a CSV file")
+def benchmark_table(records, output):
+    """Process collected JSON records into a single table"""
+    try:
+        collected = collect_records(records)
+        rows = rows_from_records(collected)
+        print_table(rows)
+        if output:
+            write_csv(rows, output)
+    except ValueError as e:
+        print(f"Invalid inputs error: {e}")
+        raise SystemExit(1) from e
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise SystemExit(1) from e
+
+
+@click.command()
+@click.argument("records", nargs=-1, required=True)
+@click.option(
+    "-o",
+    "--output",
+    default="benchmark_plot.png",
+    help="Plot output file (default: benchmark_plot.png)",
+)
+def benchmark_plot(records, output):
+    """Plot graphs over collected JSON records"""
+    try:
+        collected = collect_records(records)
+        rows = rows_from_records(collected)
+        make_plots(rows, output)
+        print(f"Plot written to {output}")
+    except ValueError as e:
+        print(f"Invalid inputs error: {e}")
+        raise SystemExit(1) from e
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise SystemExit(1) from e
+
+
+benchmark.add_command(benchmark_run, "run")
+benchmark.add_command(benchmark_table, "table")
+benchmark.add_command(benchmark_plot, "plot")
 
 
 if __name__ == "__main__":

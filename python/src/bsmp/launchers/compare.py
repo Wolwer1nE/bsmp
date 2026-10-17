@@ -10,7 +10,6 @@ import tempfile
 from os.path import isfile
 from pathlib import Path
 
-from bsmp.config import CONFIG
 from bsmp.launchers._build import ensure_built
 from bsmp.launchers.solve import run_solve
 

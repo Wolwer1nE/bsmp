@@ -1,0 +1,31 @@
+{
+    "schema_version": "1.0.0",
+    "hardware": {
+        "gpu_model": "NVIDIA H100",
+        "compute_capability": "sm_90",
+        "cuda_version": "13.0"
+    },
+    "problem": {
+        "type": "eigen",
+        "matrix": {
+            "name": "bcsstk13",
+            "rows": 2003,
+            "columns": 2003,
+            "nnz": 83883
+        }
+    },
+    "runs": [
+        {
+            "parameters": {
+                "solver": "lanczos",
+                "preconditioner": null,
+                "max_iters": 1000,
+                "tolerance": 1e-10
+            },
+            "metrics": {
+                "time": 3.14,
+                "residual": 7.2e-11
+            }
+        }
+    ]
+}

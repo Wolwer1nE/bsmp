@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -11,6 +12,7 @@
 
 #include "block_sparse_matrix.h"
 #include "gmres.h"
+#include "record/record_builder.h"
 #include "triplet_loader.h"
 
 static PreconditionerOptions parse_preconditioner_option(const char* value) {
@@ -67,6 +69,43 @@ static bool write_vector_file(const std::string& path, const std::vector<float>&
         out << vec[i] << "\n";
     }
     return true;
+}
+
+static void log_hardware_info(bsmp::experiment::Record& rec) {
+    int runtimeVersion = 0, driverVersion = 0;
+    cudaRuntimeGetVersion(&runtimeVersion);
+    cudaDriverGetVersion(&driverVersion);
+
+    int deviceCount = 0;
+    cudaError_t error = cudaGetDeviceCount(&deviceCount);
+    if (error != cudaSuccess) {
+        std::cerr << "cudaGetDeviceCount failed: " << cudaGetErrorString(error) << std::endl;
+        return;
+    }
+
+    if (deviceCount == 0) {
+        std::cout << "No CUDA-capable devices found." << std::endl;
+        return;
+    }
+    cudaError_t err = cudaGetDeviceCount(&deviceCount);
+    if (err != cudaSuccess || deviceCount == 0) {
+        std::cerr << "No CUDA device available: "
+                  << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    // First GPU is device index 0
+    cudaDeviceProp prop;
+    err = cudaGetDeviceProperties(&prop, 0);
+    if (err != cudaSuccess) {
+        std::cerr << "cudaGetDeviceProperties failed: "
+                  << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    int cc = prop.major * 10 + prop.minor;
+
+    rec.hardware(prop.name, std::to_string(runtimeVersion / 10), std::to_string(cc));
 }
 
 int main(int argc, char** argv) {
@@ -149,6 +188,15 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    bsmp::experiment::Record recorder;
+    recorder.schema_version("1.0.0");
+    log_hardware_info(recorder);
+
+    recorder.type("solve");
+    recorder.matrix(std::filesystem::path{matrix_file}.stem().string(),
+                    config.num_rows, config.num_cols, config.num_nonzero_blocks);
+    recorder.rhs(static_cast<uint32_t>(b_host.size()), false);
+
     float *d_x, *d_b;
     cudaMalloc(&d_x, config.num_rows * sizeof(float));
     cudaMalloc(&d_b, config.num_rows * sizeof(float));
@@ -170,6 +218,16 @@ int main(int argc, char** argv) {
     cudaDeviceSynchronize();
     auto solve_end = std::chrono::steady_clock::now();
     double solve_ms = std::chrono::duration_cast<std::chrono::microseconds>(solve_end - solve_start).count() / 1000.0;
+
+    bsmp::experiment::Run run;
+    run.solver("gmres");
+    run.preconditioner(preconditionerTypeName(preconditioner_options.type));
+    run.max_iters(static_cast<uint32_t>(max_iters));
+    run.tolerance(tol);
+    run.time(static_cast<float>(solve_ms));
+    run.residual(resid_out);
+    recorder.run(run);
+    recorder.write("log_gmres.json");
 
     std::cout << "\nResults:" << std::endl;
     std::cout << "Converged: " << (converged ? "YES" : "NO") << std::endl;

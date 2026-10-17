@@ -1,0 +1,21 @@
+{
+    "schema_version": "1.0.0",
+    "hardware": {
+        "gpu_model": "NVIDIA GeForce GTX 1650",
+        "cuda_version": "13.2"
+    },
+    "problem": {
+        "type": "spmv",
+        "matrix": {
+            "name": "bstsk",
+            "rows": 1000,
+            "columns": 1000,
+            "nnz": 5000
+        },
+        "rhs": {
+            "size": 1000,
+            "from_task": true
+        }
+    },
+    "runs": []
+}

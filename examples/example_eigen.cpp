@@ -1,11 +1,53 @@
+#include <cuda_runtime.h>
+
+#include <algorithm>
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
 #include "block_sparse_matrix.h"
 #include "generalized_eigen.h"
+#include "record/record_builder.h"
 #include "triplet_loader.h"
+
+static void log_hardware_info(bsmp::experiment::Record& rec) {
+    int runtimeVersion = 0, driverVersion = 0;
+    cudaRuntimeGetVersion(&runtimeVersion);
+    cudaDriverGetVersion(&driverVersion);
+
+    int deviceCount = 0;
+    cudaError_t error = cudaGetDeviceCount(&deviceCount);
+    if (error != cudaSuccess) {
+        std::cerr << "cudaGetDeviceCount failed: " << cudaGetErrorString(error) << std::endl;
+        return;
+    }
+
+    if (deviceCount == 0) {
+        std::cout << "No CUDA-capable devices found." << std::endl;
+        return;
+    }
+    cudaError_t err = cudaGetDeviceCount(&deviceCount);
+    if (err != cudaSuccess || deviceCount == 0) {
+        std::cerr << "No CUDA device available: "
+                  << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    // First GPU is device index 0
+    cudaDeviceProp prop;
+    err = cudaGetDeviceProperties(&prop, 0);
+    if (err != cudaSuccess) {
+        std::cerr << "cudaGetDeviceProperties failed: "
+                  << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    int cc = prop.major * 10 + prop.minor;
+
+    rec.hardware(prop.name, std::to_string(runtimeVersion / 10), std::to_string(cc));
+}
 
 int main(int argc, char** argv) {
     std::cout << std::fixed << std::setprecision(6);
@@ -68,6 +110,14 @@ int main(int argc, char** argv) {
     BlockSparseMatrix B(configB);
     B.initialize(block_rows_B, block_cols_B, block_data_B);
 
+    bsmp::experiment::Record recorder;
+    recorder.schema_version("1.0.0");
+    log_hardware_info(recorder);
+
+    recorder.type("eigen");
+    recorder.matrix(std::filesystem::path{fileA}.stem().string(),
+                    configA.num_rows, configA.num_cols, configA.num_nonzero_blocks);
+
     // Решение обобщенной задачи на собственные значения
     std::cout << "========================================" << std::endl;
     std::cout << "Вычисление собственных значений..." << std::endl;
@@ -111,6 +161,8 @@ int main(int argc, char** argv) {
     std::cout << std::endl;
 
     // Проверка качества решения для первого собственного значения
+    float eigen_residual_error = 0.0f;
+    bool have_eigen_residual = false;
     if (!result.eigenvalues.empty() && !result.eigenvectors.empty()) {
         std::cout << "Проверка качества (A*v vs λ*B*v для первого собственного значения):" << std::endl;
 
@@ -148,6 +200,8 @@ int main(int argc, char** argv) {
         norm_Av = std::sqrt(norm_Av);
 
         float relative_error = norm_diff / norm_Av;
+        eigen_residual_error = relative_error;
+        have_eigen_residual = true;
 
         std::cout << "  ||A*v - λ*B*v|| = " << norm_diff << std::endl;
         std::cout << "  ||A*v|| = " << norm_Av << std::endl;
@@ -165,6 +219,17 @@ int main(int argc, char** argv) {
         cudaFree(d_Av);
         cudaFree(d_Bv);
     }
+
+    bsmp::experiment::Run run;
+    run.solver("generalized-eigen");
+    run.max_iters(100);
+    run.tolerance(1e-5f);
+    run.time(static_cast<float>(duration.count()));
+    if (have_eigen_residual) {
+        run.residual(eigen_residual_error);
+    }
+    recorder.run(run);
+    recorder.write("log_eigen.json");
 
     // Сохраняем результаты для сравнения с MATLAB
     std::ofstream eigenvals_file("data/eigen_cpp_eigenvalues.txt");

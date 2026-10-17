@@ -1,0 +1,1 @@
+case,type,solver,preconditioner,max_iters,tolerance,time_ms,avg_time_ms,residual,matrix,rows,columns,nnz,rhs_size,rhs_from_task,gpu_model,cuda_version,compute_capability

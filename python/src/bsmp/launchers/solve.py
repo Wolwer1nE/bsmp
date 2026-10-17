@@ -61,6 +61,7 @@ def run_solve(
     tol: str = "",
     restart: str = "",
     no_build: bool = False,
+    cwd: str | None = None,
 ) -> None:
     """Solve Ax=b using the selected method on the given matrix and RHS."""
     if not method:
@@ -138,7 +139,7 @@ def run_solve(
         args.append(precond)
 
     try:
-        subprocess.run([str(exe), *args], check=True)
+        subprocess.run([str(exe), *args], check=True, cwd=cwd)
     finally:
         # Clean up the temporary RHS if one was created.
         if rhs_to_use != rhs_file:

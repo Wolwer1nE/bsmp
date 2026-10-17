@@ -7,9 +7,11 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <filesystem>
 
 #include "block_sparse_matrix.h"
 #include "triplet_loader.h"
+#include "record/record_builder.h"
 
 struct Options {
     std::string format = "triplets";
@@ -113,7 +115,48 @@ static bool load_matrix_by_format(
     }
 }
 
+static void log_hardware_info(bsmp::experiment::Record& rec) {
+    int runtimeVersion = 0, driverVersion = 0;
+    cudaRuntimeGetVersion(&runtimeVersion);
+    cudaDriverGetVersion(&driverVersion);
+
+    int deviceCount = 0;
+    cudaError_t error = cudaGetDeviceCount(&deviceCount);
+    if (error != cudaSuccess) {
+        std::cerr << "cudaGetDeviceCount failed: " << cudaGetErrorString(error) << std::endl;
+        return;
+    }
+
+    if (deviceCount == 0) {
+        std::cout << "No CUDA-capable devices found." << std::endl;
+        return;
+    }
+    cudaError_t err = cudaGetDeviceCount(&deviceCount);
+    if (err != cudaSuccess || deviceCount == 0) {
+        std::cerr << "No CUDA device available: "
+                  << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    // First GPU is device index 0
+    cudaDeviceProp prop;
+    err = cudaGetDeviceProperties(&prop, 0);
+    if (err != cudaSuccess) {
+        std::cerr << "cudaGetDeviceProperties failed: "
+                  << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    int cc = prop.major * 10 + prop.minor; 
+
+    rec.hardware(prop.name, std::to_string(runtimeVersion / 10), std::to_string(cc));
+}
+
 int main(int argc, char** argv) {
+    bsmp::experiment::Record recorder;
+    recorder.schema_version("1.0.0");
+    log_hardware_info(recorder);
+
     Options opt;
     if (!parse_cli(argc, argv, opt)) {
         print_usage();
@@ -135,6 +178,8 @@ int main(int argc, char** argv) {
         std::cout << "Non-zero blocks: " << cfg.num_nonzero_blocks << std::endl;
         std::cout << "Iterations: " << opt.iterations << std::endl;
     }
+    recorder.type("spmv");
+    recorder.matrix(std::filesystem::path{opt.matrix_path}.stem().string(), cfg.num_rows, cfg.num_cols, cfg.num_nonzero_blocks);
 
     BlockSparseMatrix A(cfg);
     A.initialize(block_rows, block_cols, block_data);
@@ -149,6 +194,8 @@ int main(int argc, char** argv) {
         return 3;
     }
 
+    recorder.rhs(hx.size(), false);
+
     float* d_x = nullptr;
     float* d_y = nullptr;
     cudaMalloc(&d_x, cfg.num_cols * sizeof(float));
@@ -158,6 +205,7 @@ int main(int argc, char** argv) {
     std::vector<float> hy(cfg.num_rows);
     double total_ms = 0.0;
 
+    bsmp::experiment::Run run;
     for (int iter = 0; iter < opt.iterations; ++iter) {
         auto iter_start = std::chrono::steady_clock::now();
         A.multiply(d_x, d_y, 0);
@@ -171,7 +219,6 @@ int main(int argc, char** argv) {
     }
 
     cudaMemcpy(hy.data(), d_y, cfg.num_rows * sizeof(float), cudaMemcpyDeviceToHost);
-
     if (!opt.output_path.empty()) {
         write_vector_file(opt.output_path, hy);
     }
@@ -179,6 +226,11 @@ int main(int argc, char** argv) {
     double avg_ms = total_ms / static_cast<double>(opt.iterations);
     std::cout << "Total time: " << total_ms << " ms for " << opt.iterations << " multiplies" << std::endl;
     std::cout << "Average per multiply: " << avg_ms << " ms" << std::endl;
+
+    run.time(total_ms);
+    run.avg_time(avg_ms);
+
+    recorder.run(run);
 
     if (opt.verbose) {
         double max_abs = 0.0;
@@ -193,6 +245,10 @@ int main(int argc, char** argv) {
         std::cout << std::endl;
         std::cout << "Max |y|: " << max_abs << std::endl;
     }
+
+    recorder.write("log.json");
+
+
 
     cudaFree(d_x);
     cudaFree(d_y);

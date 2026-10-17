@@ -1,5 +1,5 @@
 # Compile-time block size configuration
-set(BSMP_BLOCK_SIZE 3)
+set(BSMP_BLOCK_SIZE 3 CACHE STRING "Block size for BSMP")
 message(STATUS "BSMP_BLOCK_SIZE = ${BSMP_BLOCK_SIZE}")
 
 # Library target
@@ -21,7 +21,10 @@ add_library(bsmp STATIC
   chebyshev_smoother.cu
   sa_amg_hierarchy.cpp
   sa_amg_preconditioner.cu
+  record/record_builder.cpp
 )
+
+set_target_properties(bsmp PROPERTIES FOLDER "bsmp")
 
 target_include_directories(bsmp PUBLIC
     ${CMAKE_SOURCE_DIR}/include # for public headers
@@ -37,6 +40,8 @@ else()
   # When CUDA is enabled as a language, the cudart library is available via cuda runtime library
   # On most systems linking is automatic, but we keep explicit to be safe when available
 endif()
+
+target_link_libraries(bsmp PUBLIC nlohmann_json::nlohmann_json)
 
 # Now all targets should be setup with function from Setup.cmake
 bsmp_setup_target(bsmp)
